@@ -9,6 +9,11 @@ joint <- function(df){
   rownames(m) <- colnames(df)
   return(m)
 }
+x <- c("No", "Yes", "No")
+y <- c("No","No", "Yes")
+z <- c("No", "Yes", "Yes")
+w <- c(NA, "Yes", "Yes")
+df <- data.frame(w,x,y,z)
 joint(df)
 df$a <- 1:3
 
