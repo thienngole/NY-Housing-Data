@@ -1,0 +1,23 @@
+"","Condition Of Exterior Walls Missing Brick Siding Or Other Outside Wall Materi","Condition Of Exterior Walls Sloping Or Bulging Outside Walls","Condition Of Exterior Walls Major Cracks In Outside Walls","Condition Of Exterior Walls Loose Or Hanging Cornice Roofing Or Other Materia","Condition Of Exterior Walls None Of These Problems With Walls","Condition Of Exterior Walls Unable To Observe Walls","Condition Of Windows Broken Or Missing Windows","Condition Of Windows Rotten Loose Windows","Condition Of Windows Boarded Up Windows","Condition Of Windows None Of These Problems With Windows","Condition Of Windows Unable To Observe Windows","Condition Of Stairways Exterior And Interior. Loose Broken Or Missing Stair.","Condition Of Stairways Exterior And Interior. Loose Broken Or Missing Steps","Condition Of Stairways Exterior And Interior. None Of These Problems With Stai","Condition Of Stairways Exterior And Interior. Unable To Observe Stairways","Condition Of Stairways Exterior And Interior. No Stairways","Condition Of Floors Sagging Or Sloping Floors","Condition Of Floors Slanted Or Shifted Doorsills Or Door Frames","Condition Of Floors Deep Wear In Floors Causing Depressions","Condition Of Floors Holes Or Missing Flooring","Condition Of Floors None Of These Problems With Floors","Condition Of Floors Unable To Observe Floors"
+"Condition Of Exterior Walls Missing Brick Siding Or Other Outside Wall Materi",303,27,48,40,0,0,82,94,31,148,0,62,113,141,19,3,66,56,68,55,127,22
+"Condition Of Exterior Walls Sloping Or Bulging Outside Walls",27,79,13,18,0,0,28,35,8,23,3,20,32,40,3,0,25,26,17,8,25,2
+"Condition Of Exterior Walls Major Cracks In Outside Walls",48,13,191,22,0,0,51,63,34,91,0,33,88,80,14,0,46,44,47,37,82,10
+"Condition Of Exterior Walls Loose Or Hanging Cornice Roofing Or Other Materia",40,18,22,141,0,0,42,54,14,60,0,30,54,55,19,0,27,35,29,25,49,19
+"Condition Of Exterior Walls None Of These Problems With Walls",0,0,0,0,14216,0,281,170,56,13706,11,188,432,12394,1098,87,218,86,202,195,12974,613
+"Condition Of Exterior Walls Unable To Observe Walls",0,0,0,0,0,63,1,1,1,52,8,4,2,39,14,2,0,2,7,2,38,11
+"Condition Of Windows Broken Or Missing Windows",82,28,51,42,281,1,422,71,36,0,0,100,133,207,21,6,88,71,67,60,206,25
+"Condition Of Windows Rotten Loose Windows",94,35,63,54,170,1,71,332,29,0,0,69,125,147,25,0,94,68,72,58,113,32
+"Condition Of Windows Boarded Up Windows",31,8,34,14,56,1,36,29,110,0,0,30,53,38,5,1,22,28,26,35,39,10
+"Condition Of Windows None Of These Problems With Windows",148,23,91,60,13706,52,0,0,0,14070,0,140,390,12322,1100,85,171,71,194,171,12897,609
+"Condition Of Windows Unable To Observe Windows",0,3,0,0,11,8,0,0,0,0,22,1,5,10,6,1,1,1,0,4,10,6
+"Condition Of Stairways Exterior And Interior. Loose Broken Or Missing Stair.",62,20,33,30,188,4,100,69,30,140,1,281,96,0,0,0,94,64,78,49,94,8
+"Condition Of Stairways Exterior And Interior. Loose Broken Or Missing Steps",113,32,88,54,432,2,133,125,53,390,5,96,638,0,0,0,147,93,141,132,238,31
+"Condition Of Stairways Exterior And Interior. None Of These Problems With Stai",141,40,80,55,12394,39,207,147,38,12322,10,0,0,12735,0,0,128,66,131,124,12119,205
+"Condition Of Stairways Exterior And Interior. Unable To Observe Stairways",19,3,14,19,1098,14,21,25,5,1100,6,0,0,0,1154,0,3,5,5,2,711,424
+"Condition Of Stairways Exterior And Interior. No Stairways",3,0,0,0,87,2,6,0,1,85,1,0,0,0,0,93,0,0,1,0,85,5
+"Condition Of Floors Sagging Or Sloping Floors",66,25,46,27,218,0,88,94,22,171,1,94,147,128,3,0,328,69,69,52,0,0
+"Condition Of Floors Slanted Or Shifted Doorsills Or Door Frames",56,26,44,35,86,2,71,68,28,71,1,64,93,66,5,0,69,184,54,33,0,0
+"Condition Of Floors Deep Wear In Floors Causing Depressions",68,17,47,29,202,7,67,72,26,194,0,78,141,131,5,1,69,54,317,55,0,0
+"Condition Of Floors Holes Or Missing Flooring",55,8,37,25,195,2,60,58,35,171,4,49,132,124,2,0,52,33,55,283,0,0
+"Condition Of Floors None Of These Problems With Floors",127,25,82,49,12974,38,206,113,39,12897,10,94,238,12119,711,85,0,0,0,0,13279,0
+"Condition Of Floors Unable To Observe Floors",22,2,10,19,613,11,25,32,10,609,6,8,31,205,424,5,0,0,0,0,0,673

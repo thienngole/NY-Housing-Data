@@ -1,4 +1,5 @@
 pacman::p_load("dplyr","tidyr","ggplot2", "scales")
+#
 ### Rename Data ###################
 smart_name <- function(x) {
   gsub("(^|[^[:alnum:]])([[:alnum:]])", " \\U\\2", x, perl = TRUE) %>%
@@ -56,6 +57,25 @@ data %>% mutate_at(vars(contains("Race")), recode,
                    `9` = "Asian",
                    `10` = "Other",
                    `98` = NA_character_) -> data
+data %>% mutate_at(vars(contains("Temp")), na_if, 99) %>% 
+  mutate_at(vars(contains("Temp")), na_if, 98)-> data
+data %>% mutate_at(vars(contains("Most Recent")), na_if, 98) -> data
+data %>% mutate_at(vars(contains("Moved Into")), na_if, 98) -> data
+data %>% mutate_at(vars(contains("Before Or")), recode, 
+                   `1` = "Yes",
+                   `2` = "No",
+                   `8` = NA_character_,
+                   `9` = NA_character_) -> data
+data %>% mutate_at(vars(contains("First Occupants")), recode,
+                   `1` = "Yes",
+                   `2` = "No",
+                   `3` = NA_character_,
+                   `8` = NA_character_) -> data
+data %>% mutate_at(vars(contains("Value")), na_if, 9999999) %>%
+  mutate_at(vars(contains("Value")), na_if, 9999998) -> data
+data %>% mutate_at(vars(contains("Purchase")), na_if, 9999999) %>%
+  mutate_at(vars(contains("Purchase")), na_if, 9999998) -> data
+data %>% mutate(`Number Of Bedrooms` = factor(na_if(`Number Of Bedrooms`,98))) -> data
 
 
 
