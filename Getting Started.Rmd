@@ -1,0 +1,212 @@
+---
+title: "Getting Started"
+author: "Ahern Nelson"
+date: "March 18, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+The intention of this document is to help get everyone familiar with what I've been doing with the 
+data, some of the questions and ideas I have, and hopefully help anyone get started on asking their
+own questions about the data.
+
+Thus far I've only been looking at the 1991 dataset which I've pushed to the repository as 
+*"house91.csv"*. I have not been using the first row as the headers as we have been for the 
+homework, and instead have been using the second line. I'm doing this out of personal 
+preference, but also because *dplyr* offers some nice tools for dealing with the column names. 
+It's also significantly easier to read in the data using the second line as headers by specifying 
+the argument $skip=1$ in the **read.csv()** call which skips the first line of the csv entirely.
+
+For example:
+```{r read data}
+data <- read.csv("house91.csv", skip=1)
+```
+
+#### About Column Names/Headers
+When a data frame has column names or headers with white space in the names R will replace that 
+white space with periods. So, if we look at the first few names of our data we get this.
+
+```{r names, message=FALSE}
+library(dplyr)
+data %>% names() %>% head(n=4)
+```
+
+This doesn't look all that great, especially when we start plotting the data, so I like to get 
+rid of these periods using a custom function invloving regular expressions. The code below
+replaces the periods with spaces and capitalizes the leading character of each word.
+```{r smartName}
+smart_name <- function(x) {
+  gsub("(^|[^[:alnum:]])([[:alnum:]])", " \\U\\2", x, perl = TRUE) %>%
+    trimws("left")
+}
+data <- read.csv("house91.csv",skip = 1)
+oldNames <- data %>% select(contains("..")) %>% names()
+newNames <- gsub("\\.\\.","\\.",oldNames,fixed = F)
+smartNames <- data %>% rename_at(vars(oldNames), ~newNames) %>% names()%>% smart_name()
+data <- data %>% rename_all(~smartNames)
+```
+
+Now if we look at the new names
+```{r renamed}
+data %>% names() %>% head(n=4)
+```
+
+To access columns with spaces in the name we have to use backquotes. The backquote key is
+generally to the left of the 1 key on your keyboard.
+```{r bqoutes,eval=FALSE}
+data$`Record Type` # or
+data %>% select(`Record Type`) #or(if appropratie)
+data %>% select("Record Type")
+```
+
+It's not important to understand the code here. You should use whatever naming convention you 
+like, but it is important to know that if our data frames have different names we can't 
+immediately transfer an analyses between workflows. 
+
+We can work around this by renaming the data as needed. Something like
+```{r mixednames, eval=FALSE}
+your_data %>% names() -> your_names
+my_data %>% rename_all(~your_names) %>%
+  select(one_of_your_names)
+```
+
+Eventually, we will probably want to decide on a common naming convention for the columns we use
+in our project.
+
+## Recoding the data
+There are many ways to recode the values in each column. The following explains my approach.
+To recode the data I have been using variations of the **mutate()** and **recode()** functions from 
+**dplyr**. I found the **recode()** function by looking through the **dplyr** documentation at 
+https://dplyr.tidyverse.org/. There are many different variants of **dplyr** functions that you
+can read more about there. 
+
+Recode a single column
+```{r recode1}
+data %>% mutate(`Condition Of Building` = recode(`Condition Of Building`,
+         `1` = "Very Poor",
+         `2` = "Good",
+         `3` = "Deteriorating",
+         `8` = NA_character_)) -> data
+```
+
+Recode multiple columns using *mutate_at*
+```{r recode2}
+data %>% select(contains("Condition")) %>% 
+  select(-one_of("Condition Of Building")) %>% names() -> conditions
+data %>% mutate_at(vars(conditions), recode, 
+                    `1`="Yes", 
+                    `8`= NA_character_, 
+                    `9`= "No") -> data
+```
+
+Note the numbers being recoded have to be surrounded in backquotes, **mutate_at()** takes
+a collection of column variables wrapped in the **vars()** function and applies a specifed function 
+(*e.g.,* recode) to each column. I generally use this to recode everything, including single columns,
+becuase I don't have write the whole column name out. 
+
+For example:
+```{r mutateat}
+data %>% mutate_at(vars(contains('Sex')), recode,
+                   `1` = "Male",
+                   `2` = "Female") -> data
+```
+
+I'm slowly working on recoding columns as needed instead of trying to recode all of them. You
+can look at all of the recoded variables thus far in the *"Cleaning script.R"* file.
+```{r,include=FALSE}
+source("Cleaning script.R")
+```
+## Exploratory Data Analysis
+You can find all the code used to produce these plots in *"eda.R"*
+
+Ultimately the goal is to build an index measuring the housing conditions, so I was mostly interested 
+in the columns concerning all the different conditions being recorded. In addition to these
+columns there is a qualitative column concering the percieved building condtion. SO my first question
+was how this value related to the individual conditions of the unit in the building.
+
+```{r,echo=FALSE, fig.width=13}
+data %>% select(contains("Condition")) %>% 
+  select(contains("None"),contains("Unable")) %>% 
+  names() -> annoying
+data %>% select(contains("Condition")) %>%
+select(-one_of(annoying),`Condition Of Building`) %>%
+rename(Building = `Condition Of Building`) %>%
+gather(Condition, Response, contains("Condition")) %>% 
+filter(!is.na(Response)) %>%
+group_by(Condition, Building) %>%
+summarise(Percent = sum(Response=="Yes")/n(),
+          count = n()) %>%
+ggplot(aes(Condition,Percent, fill=Building)) + 
+  geom_col(position="dodge") + coord_flip() +
+  scale_y_continuous(labels = percent) +
+  facet_wrap(facets = ~Building)
+```
+
+This is informative, in that very few of the "Good" buildings have surveyed units with poor conditions.
+However, it is not clear from the graph how many buildings are of "Good" condition compared to how many 
+are "Very Poor". It's also not clear how different combinations of conditions work here.
+
+We can address the sample size concern in **dplyr**
+```{r}
+data %>% group_by(`Condition Of Building`) %>%
+  summarise(count=n())
+```
+The sample proportion of "Very Poor" buildings is pretty small.
+We might want to look at how these values shift over time.
+Keep in mind that these values are determined by observation and may not be the most accurate. 
+
+Next I wanted to know if these condition had any affect on the value of the unit. I calculated
+the average value for units with and without a contion and took there difference. 
+I also made the plot interactive and added information concerncing sample sizes.
+```{r differences, echo=FALSE, fig.width=10}
+pacman::p_load("plotly")
+data %>% select(contains("Condition"), Value, `Purchase Price 1`) %>%
+  select(-one_of(annoying)) %>%
+  rename(Building = `Condition Of Building`) %>%
+  gather(Condition, Response, contains("Condition")) %>% 
+  group_by(Condition, Response) %>% filter(!is.na(Value)) %>%  
+  summarise(avgV = mean(Value,na.rm=T), count = n()) %>% 
+  filter(!is.na(Response)) %>% 
+  group_by(Condition) %>% 
+  summarise(diff_avg_value = diff(-avgV),
+                  no_count = count[1],
+                 yes_count = count[2]) %>%
+  mutate(plot_text = paste0("#No: ",no_count,"\n",
+                            "#Yes: ",yes_count)) %>%
+  arrange(diff_avg_value) %>% ungroup() %>%
+  mutate(Condition = factor(Condition, levels = Condition)) %>%
+  ggplot(aes(Condition, diff_avg_value, text=plot_text)) + 
+  geom_col() + coord_flip() -> g
+  ggplotly(g)
+```
+Unfortunately, there is a huge discrepancy between the number of units with and without these
+conditions and it is not appropraite to compare averages between the populations.
+Although, we should consider substituting value for other numerical data like rent or other monthly costs.
+
+A great thing to do when just gettting started with data is to make histograms or boxplots of numerical data 
+with respect to some category. For example we might look at purchase price distributions per Borough
+```{r, fig.width=13}
+ggplot(data,aes(`Purchase Price 1`)) + geom_histogram(binwidth = 5e+04) + 
+  geom_density(aes(y=5e+04*..count..)) +
+  facet_wrap(facets = ~Borough)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
