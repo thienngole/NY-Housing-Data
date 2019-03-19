@@ -144,7 +144,27 @@ data %>% group_by(`Condition Of Building`) %>%
 
 The sample proportion of "Very Poor" buildings is pretty small. We might want to look at how these values shift over time. Keep in mind that these values are determined by observation and may not be the most accurate.
 
-Next I wanted to know if these condition had any affect on the value of the unit. I calculated the average value for units with and without a contion and took there difference. I also added plot text to show sample size) ![](Getting_Started_files/figure-markdown_github/differences-1.png) Unfortunately, there is a huge discrepancy between the number of units with and without these conditions and it is not appropraite to compare averages between the populations. Although, we should consider substituting value for other numerical data like rent or other monthly costs.
+Next I wanted to know if these condition had any affect on the value of the unit. I calculated the average value for units with and without a contion and took there difference. ![](Getting_Started_files/figure-markdown_github/differences-1.png)
+
+    ## # A tibble: 14 x 5
+    ##    Condition                 diff_avg_value no_count yes_count plot_text   
+    ##    <fct>                              <dbl>    <int>     <int> <chr>       
+    ##  1 Condition Of Exterior Wa~        -65943.     3664        10 "#No: 3664\~
+    ##  2 Condition Of Stairways E~        -22064.     3637        28 "#No: 3637\~
+    ##  3 Condition Of Floors Hole~         14574.     3656        13 "#No: 3656\~
+    ##  4 Condition Of Windows Bro~         20880.     3646        28 "#No: 3646\~
+    ##  5 Condition Of Floors Slan~         34520.     3663         6 "#No: 3663\~
+    ##  6 Condition Of Exterior Wa~         37627.     3632        42 "#No: 3632\~
+    ##  7 Condition Of Stairways E~         42178.     3653        12 "#No: 3653\~
+    ##  8 Condition Of Exterior Wa~         46255.     3652        22 "#No: 3652\~
+    ##  9 Condition Of Floors Sagg~         56310.     3655        14 "#No: 3655\~
+    ## 10 Condition Of Stairways E~         63131.     3627        38 "#No: 3627\~
+    ## 11 Condition Of Windows Boa~         63649.     3673         1 "#No: 3673\~
+    ## 12 Condition Of Windows Rot~         65508.     3641        33 "#No: 3641\~
+    ## 13 Condition Of Floors Deep~         76485.     3661         8 "#No: 3661\~
+    ## 14 Condition Of Exterior Wa~         82349.     3668         6 "#No: 3668\~
+
+Unfortunately, there is a huge discrepancy between the number of units with and without these conditions and it is not appropraite to compare averages between the populations. Although, we should consider substituting value for other numerical data like rent or other monthly costs.
 
 A great thing to do when just gettting started with data is to make histograms or boxplots of numerical data with respect to some category. For example we might look at purchase price distributions per Borough
 
