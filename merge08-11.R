@@ -26,7 +26,7 @@ floor11 <- floor08
 ### pick the rest ##########
 c("borough",
   conditions,
-  paste0("X",c("_24a","_25c","_26a","_30a","_31b","_32b","_35a","_38a")),
+  paste0("X",c("_24a","_25c","_26a","_30a","_31b","_32b","_35a","_36a","_37a","_38a")),
   "hhinc","year") -> cols_trim
 data08 %>% select(cols_trim) -> trim08
 data11 %>% select(cols_trim) -> trim11
@@ -37,14 +37,16 @@ merge_08_11 %>% mutate_at(vars(conditions),recode,
                           `1` = 1,
                           `8` = 0,
                           `9` = 0) %>%
-  mutate(cond_wall = 2*(X_d1 + X_d2 + X_d3 + X_d4)) %>%
+  mutate(X_36a = recode(X_36a, `1`=1, `2`=0, `8`=0)) %>%
+  mutate(X_37a = recode(X_37a, `0`=1, `1`=0, `8`=0)) %>%
+  mutate(cond_wall = 2*(X_d1 + X_d2 + X_d3 + X_d4 + X_36a + X_37a)) %>%
   mutate(cond_win = 2*(X_e1 + X_e2 + X_e3)) %>%
   mutate(cond_stair = 2*(X_f1 + X_f2 + X_f4 + X_f5)) %>%
   mutate(cond_floor = 2*(X_g1 + X_g2 + X_g3 + X_g4)) %>%
   mutate(cond_score = cond_wall + cond_win + cond_stair + cond_floor) %>%
   select(-one_of(conditions)) -> merge_08_11_temp
-merge_08_11_temp %>% 
-  summarise(max(cond_score), median(cond_score), mean(cond_score))
+merge_08_11_temp %>% group_by(year, borough) %>%
+  summarise(max(cond_score), quantile(cond_score, .90),  mean(cond_score))
 ## Order and rename columns
 col_order <- c("year", "borough", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b",
                "X_24a", "cond_wall", "cond_floor", "cond_win", "cond_stair",
