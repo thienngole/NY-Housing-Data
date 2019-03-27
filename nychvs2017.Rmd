@@ -1,0 +1,130 @@
+
+```{r}
+library(dplyr)
+file_2017 <- "/Users/thienngole/Desktop/NYCHVS/NYCHVS2017.csv"
+
+# Data-only data frame (with no headers):
+nych17 <- read.csv(file_2017, skip = 2, header = FALSE)
+# Temporary data frame from which to extract the first row of headers: 
+tmp <- read.csv(file_2017, header = TRUE)
+# Use headers from tmp for nych17:
+names(nych17) <- names(tmp)
+# Remove the temporary data frame:
+rm(tmp)
+show(nych17)
+```
+
+Build cond_wall column
+```{r}
+nych17$X_36a[nych17$X_36a == 2] <- 0
+nych17$X_36a[nych17$X_36a == 8] <- 0
+nych17$X_36a[nych17$X_36a == 1] <- 2
+
+nych17$X_37a[nych17$X_37a == 0] <- 2
+nych17$X_37a[nych17$X_37a == 1] <- 0
+nych17$X_37a[nych17$X_37a == 8] <- 0
+
+nych17$X_d12[nych17$X_d12 == 1] <- 2
+nych17$X_d12[nych17$X_d12 == 8] <- 0
+nych17$X_d12[nych17$X_d12 == 9] <- 0
+
+nych17$X_d3[nych17$X_d3 == 1] <- 2
+nych17$X_d3[nych17$X_d3 == 8] <- 0
+nych17$X_d3[nych17$X_d3 == 9] <- 0
+
+nych17[ , "X_d1"] <- 0
+
+nych17$cond_wall=rowSums(cbind(nych17$X_36a,nych17$X_37a, nych17$X_d1,
+                              nych17$X_d3, nych17$X_d12))
+
+```
+
+Build cond_floor column
+```{r}
+nych17$X_g1[nych17$X_g1 == 1] <- 2
+nych17$X_g1[nych17$X_g1 == 8] <- 0
+nych17$X_g1[nych17$X_g1 == 9] <- 0
+
+nych17[ , "X_g2"] <- 0
+
+nych17$X_g3[nych17$X_g3 == 1] <- 2
+nych17$X_g3[nych17$X_g3 == 8] <- 0
+nych17$X_g3[nych17$X_g3 == 9] <- 0
+
+nych17$X_g4[nych17$X_g4 == 1] <- 2
+nych17$X_g4[nych17$X_g4 == 8] <- 0
+nych17$X_g4[nych17$X_g4 == 9] <- 0
+
+nych17$X_g5[nych17$X_g5 == 1] <- 2
+nych17$X_g5[nych17$X_g5 == 8] <- 0
+nych17$X_g5[nych17$X_g5 == 9] <- 0
+
+nych17$cond_floor=rowSums(cbind(nych17$X_g1,nych17$X_g2, nych17$X_g3,
+                              nych17$X_g4, nych17$X_g5))
+
+```
+
+Build cond_windows column
+```{r}
+nych17$X_e1[nych17$X_e1 == 1] <- 2
+nych17$X_e1[nych17$X_e1 == 8] <- 0
+nych17$X_e1[nych17$X_e1 == 9] <- 0
+
+nych17$X_e2[nych17$X_e2 == 1] <- 2
+nych17$X_e2[nych17$X_e2 == 8] <- 0
+nych17$X_e2[nych17$X_e2 == 9] <- 0
+
+nych17$X_e3[nych17$X_e3 == 1] <- 2
+nych17$X_e3[nych17$X_e3 == 8] <- 0
+nych17$X_e3[nych17$X_e3 == 9] <- 0
+
+nych17$X_e4[nych17$X_e4 == 1] <- 2
+nych17$X_e4[nych17$X_e4 == 8] <- 0
+nych17$X_e4[nych17$X_e4 == 9] <- 0
+
+nych17$cond_windows=rowSums(cbind(nych17$X_e1,nych17$X_e2, nych17$X_e3, nych17$X_e4))
+
+```
+
+Build cond_stairway column
+```{r}
+nych17$X_f1[nych17$X_f1 == 1] <- 2
+nych17$X_f1[nych17$X_f1 == 8] <- 0
+nych17$X_f1[nych17$X_f1 == 9] <- 0
+
+nych17$X_f2[nych17$X_f2 == 1] <- 2
+nych17$X_f2[nych17$X_f2 == 8] <- 0
+nych17$X_f2[nych17$X_f2 == 9] <- 0
+
+nych17$X_f3[nych17$X_f3 == 1] <- 2
+nych17$X_f3[nych17$X_f3 == 8] <- 0
+nych17$X_f3[nych17$X_f3 == 9] <- 0
+
+nych17$X_f4[nych17$X_f4 == 1] <- 2
+nych17$X_f4[nych17$X_f4 == 8] <- 0
+nych17$X_f4[nych17$X_f4 == 9] <- 0
+
+nych17$X_f5[nych17$X_f5 == 1] <- 2
+nych17$X_f5[nych17$X_f5 == 8] <- 0
+nych17$X_f5[nych17$X_f5 == 9] <- 0
+
+nych17$cond_stairway=rowSums(cbind(nych17$X_f1,nych17$X_f2, nych17$X_f3, nych17$X_f4, 
+                                   nych17$X_f5))
+
+```
+
+```{r}
+nychvs2017 <- nych17[c("hhinc", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b", "X_24a", "cond_wall", "cond_floor", "cond_windows", "cond_stairway")]
+write.csv(nychvs2017, file = "nychvs2014.csv")
+```
+
+```{r}
+show(nychvs2017)
+
+```
+
+
+
+
+
+

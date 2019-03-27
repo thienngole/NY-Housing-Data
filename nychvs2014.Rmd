@@ -1,0 +1,127 @@
+
+```{r}
+library(dplyr)
+file_2014 <- "/Users/thienngole/Desktop/NYCHVS/NYCHVS2014.csv"
+
+# Data-only data frame (with no headers):
+nych14 <- read.csv(file_2014, skip = 2, header = FALSE)
+# Temporary data frame from which to extract the first row of headers: 
+tmp <- read.csv(file_2014, header = TRUE)
+# Use headers from tmp for nych14:
+names(nych14) <- names(tmp)
+# Remove the temporary data frame:
+rm(tmp)
+show(nych14)
+```
+
+Build cond_wall column
+```{r}
+nych14$X_36a[nych14$X_36a == 2] <- 0
+nych14$X_36a[nych14$X_36a == 8] <- 0
+nych14$X_36a[nych14$X_36a == 1] <- 2
+
+nych14$X_37a[nych14$X_37a == 0] <- 2
+nych14$X_37a[nych14$X_37a == 1] <- 0
+nych14$X_37a[nych14$X_37a == 8] <- 0
+
+nych14$X_d1[nych14$X_d1 == 1] <- 2
+nych14$X_d1[nych14$X_d1 == 8] <- 0
+nych14$X_d1[nych14$X_d1 == 9] <- 0
+
+nych14$X_d3[nych14$X_d3 == 1] <- 2
+nych14$X_d3[nych14$X_d3 == 8] <- 0
+nych14$X_d3[nych14$X_d3 == 9] <- 0
+
+nych14[ , "X_d12"] <- 0
+
+nych14$cond_wall=rowSums(cbind(nych14$X_36a,nych14$X_37a, nych14$X_d1,
+                              nych14$X_d3, nych14$X_d12))
+
+```
+
+Build cond_floor column
+```{r}
+nych14$X_g1[nych14$X_g1 == 1] <- 2
+nych14$X_g1[nych14$X_g1 == 8] <- 0
+nych14$X_g1[nych14$X_g1 == 9] <- 0
+
+nych14$X_g2[nych14$X_g2 == 1] <- 2
+nych14$X_g2[nych14$X_g2 == 8] <- 0
+nych14$X_g2[nych14$X_g2 == 9] <- 0
+
+nych14$X_g3[nych14$X_g3 == 1] <- 2
+nych14$X_g3[nych14$X_g3 == 8] <- 0
+nych14$X_g3[nych14$X_g3 == 9] <- 0
+
+nych14$X_g4[nych14$X_g4 == 1] <- 2
+nych14$X_g4[nych14$X_g4 == 8] <- 0
+nych14$X_g4[nych14$X_g4 == 9] <- 0
+
+nych14$X_g5[nych14$X_g5 == 1] <- 2
+nych14$X_g5[nych14$X_g5 == 8] <- 0
+nych14$X_g5[nych14$X_g5 == 9] <- 0
+
+nych14$cond_floor=rowSums(cbind(nych14$X_g1,nych14$X_g2, nych14$X_g3,
+                              nych14$X_g4, nych14$X_g5))
+
+```
+
+Build cond_windows column
+```{r}
+nych14$X_e1[nych14$X_e1 == 1] <- 2
+nych14$X_e1[nych14$X_e1 == 8] <- 0
+nych14$X_e1[nych14$X_e1 == 9] <- 0
+
+nych14$X_e2[nych14$X_e2 == 1] <- 2
+nych14$X_e2[nych14$X_e2 == 8] <- 0
+nych14$X_e2[nych14$X_e2 == 9] <- 0
+
+nych14$X_e3[nych14$X_e3 == 1] <- 2
+nych14$X_e3[nych14$X_e3 == 8] <- 0
+nych14$X_e3[nych14$X_e3 == 9] <- 0
+
+nych14$X_e4[nych14$X_e4 == 1] <- 2
+nych14$X_e4[nych14$X_e4 == 8] <- 0
+nych14$X_e4[nych14$X_e4 == 9] <- 0
+
+nych14$cond_windows=rowSums(cbind(nych14$X_e1,nych14$X_e2, nych14$X_e3, nych14$X_e4))
+
+```
+
+Build cond_stairway column
+```{r}
+nych14$X_f1[nych14$X_f1 == 1] <- 2
+nych14$X_f1[nych14$X_f1 == 8] <- 0
+nych14$X_f1[nych14$X_f1 == 9] <- 0
+
+nych14$X_f2[nych14$X_f2 == 1] <- 2
+nych14$X_f2[nych14$X_f2 == 8] <- 0
+nych14$X_f2[nych14$X_f2 == 9] <- 0
+
+nych14$X_f3[nych14$X_f3 == 1] <- 2
+nych14$X_f3[nych14$X_f3 == 8] <- 0
+nych14$X_f3[nych14$X_f3 == 9] <- 0
+
+nych14$X_f4[nych14$X_f4 == 1] <- 2
+nych14$X_f4[nych14$X_f4 == 8] <- 0
+nych14$X_f4[nych14$X_f4 == 9] <- 0
+
+nych14$X_f5[nych14$X_f5 == 1] <- 2
+nych14$X_f5[nych14$X_f5 == 8] <- 0
+nych14$X_f5[nych14$X_f5 == 9] <- 0
+
+nych14$cond_stairway=rowSums(cbind(nych14$X_f1,nych14$X_f2, nych14$X_f3, nych14$X_f4, 
+                                   nych14$X_f5))
+
+```
+
+```{r}
+nychvs2014 <- nych14[c("hhinc", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b", "X_24a", "cond_wall", "cond_floor", "cond_windows", "cond_stairway")]
+write.csv(nychvs2014, file = "nychvs2014.csv")
+```
+
+```{r}
+show(nychvs2014)
+
+```
+
