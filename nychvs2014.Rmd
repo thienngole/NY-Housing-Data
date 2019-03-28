@@ -116,7 +116,7 @@ nych14$cond_stairway=rowSums(cbind(nych14$X_f1,nych14$X_f2, nych14$X_f3, nych14$
 ```
 
 ```{r}
-nychvs2014 <- nych14[c("hhinc", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b", "X_24a", "cond_wall", "cond_floor", "cond_windows", "cond_stairway")]
+nychvs2014 <- nych14[c("hhinc", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b", "X_24a", "cond_wall", "cond_floor", "cond_windows", "cond_stairway", "X_35a", "X_38a")]
 write.csv(nychvs2014, file = "nychvs2014.csv")
 ```
 
