@@ -1,0 +1,132 @@
+1993 Data
+Aya
+
+```{r}
+library(dplyr)
+
+temp93 <- tempfile()
+url93 <- "https://www1.nyc.gov/assets/hpd/downloads/misc/NYCHVS-1993-Occupied-File-for-ASA-Challenge-CSV.zip"
+download.file(url08, destfile = temp93)
+
+# Data-only data frame (with no headers):
+nych93 <- read.csv(unzip(temp93), skip = 2, header = FALSE)
+# Temporary data frame from which to extract the first row of headers: 
+tmp <- read.csv(unzip(temp93), header = TRUE)
+
+# Use headers from tmp for nych93:
+names(nych93) <- names(tmp)
+# Remove the temporary data frame:
+rm(tmp)
+show(nych93)
+```
+
+Build cond_wall column
+```{r}
+nych93$X_36a[nych93$X_36a == 2] <- 0
+nych93$X_36a[nych93$X_36a == 8] <- 0
+nych93$X_36a[nych93$X_36a == 1] <- 2
+
+nych93$X_37a[nych93$X_37a == 0] <- 2
+nych93$X_37a[nych93$X_37a == 1] <- 0
+nych93$X_37a[nych93$X_37a == 8] <- 0
+
+nych93$X_d12[nych93$X_d1 == 1] <- 2
+nych93$X_d12[nych93$X_d1 == 8] <- 0
+nych93$X_d12[nych93$X_d1 == 9] <- 0
+
+nych93$X_d3[nych93$X_d3 == 1] <- 2
+nych93$X_d3[nych93$X_d3 == 8] <- 0
+nych93$X_d3[nych93$X_d3 == 9] <- 0
+
+nych93[ , "X_d12"] <- 0
+
+nych93$cond_wall=rowSums(cbind(nych93$X_36a,nych93$X_37a, nych93$X_d1,
+                              nych93$X_d3, nych93$X_d12))
+
+```
+
+Build cond_floor column
+```{r}
+nych93$X_g1[nych93$X_g1 == 1] <- 2
+nych93$X_g1[nych93$X_g1 == 8] <- 0
+nych93$X_g1[nych93$X_g1 == 9] <- 0
+
+nych93$X_g2[nych93$X_g2 == 1] <- 2
+nych93$X_g2[nych93$X_g2 == 8] <- 0
+nych93$X_g2[nych93$X_g2 == 9] <- 0
+
+nych93$X_g3[nych93$X_g3 == 1] <- 2
+nych93$X_g3[nych93$X_g3 == 8] <- 0
+nych93$X_g3[nych93$X_g3 == 9] <- 0
+
+nych93$X_g4[nych93$X_g4 == 1] <- 2
+nych93$X_g4[nych93$X_g4 == 8] <- 0
+nych93$X_g4[nych93$X_g4 == 9] <- 0
+
+nych93$X_g5[nych93$X_g5 == 1] <- 2
+nych93$X_g5[nych93$X_g5 == 8] <- 0
+nych93$X_g5[nych93$X_g5 == 9] <- 0
+
+nych93$cond_floor=rowSums(cbind(nych93$X_g1,nych93$X_g2, nych93$X_g3,
+                              nych93$X_g4, nych93$X_g5))
+
+```
+
+Build cond_windows column
+```{r}
+nych93$X_e1[nych93$X_e1 == 1] <- 2
+nych93$X_e1[nych93$X_e1 == 8] <- 0
+nych93$X_e1[nych93$X_e1 == 9] <- 0
+
+nych93$X_e2[nych93$X_e2 == 1] <- 2
+nych93$X_e2[nych93$X_e2 == 8] <- 0
+nych93$X_e2[nych93$X_e2 == 9] <- 0
+
+nych93$X_e3[nych93$X_e3 == 1] <- 2
+nych93$X_e3[nych93$X_e3 == 8] <- 0
+nych93$X_e3[nych93$X_e3 == 9] <- 0
+
+nych93$X_e4[nych93$X_e4 == 1] <- 2
+nych93$X_e4[nych93$X_e4 == 8] <- 0
+nych93$X_e4[nych93$X_e4 == 9] <- 0
+
+nych93$cond_windows=rowSums(cbind(nych93$X_e1,nych93$X_e2, nych93$X_e3, nych93$X_e4))
+
+```
+
+Build cond_stairway column
+```{r}
+nych93$X_f1[nych93$X_f1 == 1] <- 2
+nych93$X_f1[nych93$X_f1 == 8] <- 0
+nych93$X_f1[nych93$X_f1 == 9] <- 0
+
+nych93$X_f2[nych93$X_f2 == 1] <- 2
+nych93$X_f2[nych93$X_f2 == 8] <- 0
+nych93$X_f2[nych93$X_f2 == 9] <- 0
+
+nych93$X_f3[nych93$X_f3 == 1] <- 2
+nych93$X_f3[nych93$X_f3 == 8] <- 0
+nych93$X_f3[nych93$X_f3 == 9] <- 0
+
+nych93[ , "X_f4"] <- 0
+nych93[ , "X_f5"] <- 0
+
+nych93$cond_stairway=rowSums(cbind(nych93$X_f1,nych93$X_f2, nych93$X_f3, nych93$X_f4, nych93$X_f5))
+
+```
+Add a missing column, X_31b Out of pocket door
+
+```{r}
+nych93$X_31b <- NA
+```
+
+```{r}
+nychvs1993 <- nych93[c("hhinc", "X_30a", "X_31b", "X_26a", "X_25c", "X_32b", "X_24a", "cond_wall", "cond_floor", "cond_windows", "cond_stairway", "X_35a", "X_38a")]
+write.csv(nychvs1993, file = "nychvs1993.csv")
+```
+
+
+```{r}
+show(nychvs1993)
+
+```
