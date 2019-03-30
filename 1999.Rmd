@@ -9,7 +9,7 @@ my.file <- file.choose()
 nych1996 <- read.csv(my.file, skip = 2, header = FALSE, stringsAsFactors = FALSE)
 # Read in data (with both rows of headers), temporary data frame:
 tmp <- read.csv(my.file, header = TRUE, stringsAsFactors = FALSE)
-# Use headers from tmp for nych1999:
+# Use headers from tmp for nych17:
 names(nych1996) <- names(tmp)
 # Remove the temporary data frame:
 rm(tmp)
