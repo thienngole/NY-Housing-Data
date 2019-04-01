@@ -14,6 +14,8 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
     return(temp_data)
   return(header)
 }
+
+
 data17 <- get_nychsv(year = 2017)
 data14 <- get_nychsv(year = 2014)
 data11 <- get_nychsv(year = 2011)
@@ -25,7 +27,7 @@ data96 <- get_nychsv(year = 1996)
 data93 <- get_nychsv(year = 1993)
 data91 <- get_nychsv(year = 1991)
 
-## col_keys returns the column headers and descriptions.
+## col_keys = T returns the column headers and descriptions.
 ## Taking the transpose gives a nice key for reference.
 library(dplyr)
 get_nychsv(year = 1991, col_keys = T) %>% t() %>% head(n=12)
