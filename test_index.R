@@ -24,14 +24,15 @@ all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>%
   scale_y_continuous(labels=percent) -> g 
 ggplotly(g)
 ### Table #########
-all_data %>% group_by(year) %>% summarise(perc_0 = sum(pqi > 0)/n(), 
-                                          perc_1_10 = sum(pqi %in% 1:10)/n(),
-                                          perc_11_20 = sum(pqi %in% 11:20)/n(),
-                                          perc_20 = sum(pqi>20)/n()) -> pqi_table
-  pqi_table %>% gather(Group, Percent, -one_of("year")) %>%
-  ggplot(aes(x=year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
-  facet_wrap(facets = ~Group, ncol = 1) + scale_x_continuous(breaks = seq(1990,2017,3)) + 
-  scale_y_continuous(labels = percent) -> t
+all_data %>% group_by(year) %>% summarise(`(%) Index > 0` = sum(pqi > 0)/n(), 
+                                          `(%) Index of 1-10` = sum(pqi %in% 1:10)/n(),
+                                          `(%) Index of 11-20`= sum(pqi %in% 11:20)/n(),
+                                          `(%) Index of > 20` = sum(pqi>20)/n()) -> pqi_table
+  pqi_table %>% gather(Group, Percent, -one_of("year")) %>% rename(Year = year) %>%
+    arrange(Year) %>%
+  ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
+  facet_wrap(facets = ~Group, ncol = 4) + scale_x_continuous(breaks = seq(1990,2017,3)) + 
+  scale_y_continuous(labels = percent) + coord_flip() + theme_bw() -> t
 ### Trend Lines ############
 all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
                                           p_95 = quantile(pqi,.95),
