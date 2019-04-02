@@ -16,7 +16,7 @@ all_data %>% mutate(borough = recode(borough,
                        `2008`=2008,`2011`=2011,`2014`=2014,`2017`=2017)) %>%
   mutate(oop_rent = na_if(oop_rent, 99999)) %>%
   mutate(oop_rent = na_if(oop_rent, 99999)) -> all_data
-all_data[all_data$hhinc==999999,"hhinc"] <- NA
+all_data[which(all_data$hhinc==9999999),"hhinc"] <- NA
 ### Frequency dist ####
 all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
   mutate(percent = count/sum(count)) %>% 
@@ -48,6 +48,21 @@ all_data %>% filter(oop_rent < 75000) %>%
 ggplot(aes(x=pqi,y=oop_rent)) + 
   geom_point(aes(col=factor(n_room)), position = "jitter", alpha = .4) + 
   facet_wrap(facets = ~borough) -> t1
+## Income eda #########
+all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>% 
+    mutate(hhinc_part = case_when(hhinc %in% min(hhinc):quantile(hhinc,.25) ~ "q1",
+                                  hhinc %in% (quantile(hhinc,.25)+1):quantile(hhinc,.50) ~ "q2",
+                                  hhinc %in% (quantile(hhinc,.50)+1):quantile(hhinc,.75) ~ "q3",
+                                  hhinc %in% (quantile(hhinc,.75)+1):max(hhinc) ~ "q4")) %>% 
+    ggplot() + geom_boxplot(aes(x=hhinc_part, y=pqi)) -> g4
+  g4 %>% ggplotly()
+  all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>% 
+    mutate(pqi_part = case_when(pqi %in% (quantile(pqi,.50)+1):quantile(pqi,.75) ~ "q1",
+                                  pqi %in% (quantile(pqi,.75)+1):quantile(pqi,.90) ~ "q2",
+                                  pqi %in% (quantile(pqi,.90)+1):quantile(pqi,.95) ~ "q3",
+                                  pqi %in% (quantile(pqi,.95)+1):max(pqi) ~ "q4")) %>% 
+    ggplot() + geom_boxplot(aes(x=pqi_part, y=log(hhinc))) -> g5
+  g5 %>% ggplotly()
 ## Plots ###############   
 pqi_table
 ggplotly(t)
