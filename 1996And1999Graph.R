@@ -23,12 +23,21 @@ names(nych1999) <- names(tmp)
 # Remove the temporary data frame:
 rm(tmp)
 #======================
-revolver <- cbind.fill(nych1996, nych1999, by="X_30a")
-names(revolver)[1]<-"new_name1996_X_30a"
-names(revolver)[2]<-"new_name1999_X_30a"# that is how i changed from object to new name
+revolver <- cbind.fill(nych1996, nych1999, by="X_30a")#this has duplicated colums because it has 2 data sets
+names(revolver)[80]<-"new_name1996_X_30a"
+names(revolver)[242]<-"new_name1999_X_30a"# that is how i changed from object to new name
 ggplot(.data = revolver ) + geom_point(mapping = aes(x="new_name1996_X_30a", y = "new_name1999_X_30a"))
 
+ggplot(.data = nych1996 ) + geom_bar(mapping = aes(x="new_name1996_X_30a"))
+
+ggplot(data = revolver) +
+       geom_bar(mapping = aes(x = new_name1996_X_30a, fill = new_name1996_X_30a))#if i try this it does not work
+
+dat <- data.frame(
+       years = factor(c("nych1996$X_30a","nych1999$X_30a")))
+ ggplot(data = dat, aes(x=years)) +geom_bar()
 #======================
+
 #info <- merge(nych1996, nych1999, by ="X_30a")#is too heavy to work
 
 #info <-rbind.fill(nych1996, nych1999)#data frame. this works but everything is under the same variable
