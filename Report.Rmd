@@ -1,12 +1,6 @@
 ---
 title: "Midterm Project Report: Indexing NYC Hosuing Quality"
-author: "Group C" 
-Ayako Zrust, 
-Anayeli Ochoa, 
-Ahern Nelson, 
-ThienNgo Le, 
-Edward Aaronson, 
-Zoe Girkin"
+author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Edward Aaronson, Zoe Girkin"
 date: "April 3, 2019"
 output:
   html_document: default
@@ -16,8 +10,6 @@ output:
 # Introduction
 
 In the period of 1991 to 2017, housing quality in New York has improved dramatically; however, some sectors of the housing stock continue to face poor conditions and some specific maintenance deficiencies continue to show higher prevalence. In this project, we develop an index that presents poor qualtity of housing in New York by measuring the physical deficiencies to show how the prevalence of these issues has shifted over time. 
-
-# Methodology
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -44,13 +36,11 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
 }
 ```
 
-In this paper we look at the NYCHVS data and attempt to a build an index measuring poor housing quality.
-With 
+ 
 # Methodology
-The index measures weighted sums of interactions between variables that the authors chose. 
-The selected variables were chosen if the authors agreed they describe housing conditions.
-however the index is certainly not exhaustive, 
-and potentially more data could be collected to better suit this purpose.
+The index measures weighted sums of interactions between 22 variables that the authors chose. 
+The selected variables were chosen if the authors agreed they described poor housing conditions.
+The index is not exhaustive, and potentially more data could be collected to better suit our purpose.
 
 | Item | Description      | NYCHVS Variable | Score |
 | ---- | ---------------- | --------------- | ----- |
@@ -85,7 +75,7 @@ all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>%
   mutate(percent = count/sum(count)) %>%
   ggplot(aes(x=pqi,y=percent)) + geom_line(aes(col=factor(year))) + 
   scale_y_continuous(labels=percent) + 
-  ggtitle("Figure1: Index Percent Frequency Distribution 1991-2017") +
+  ggtitle("Figure 1: Index Percent Frequency Distribution 1991-2017") +
   xlab("Index Score") + ylab("Percent") + labs(col="") + theme_bw() -> g 
 ggplotly(g)
 ```
@@ -103,7 +93,7 @@ all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(),
   ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
   facet_wrap(facets = ~Group, ncol = 4) + scale_x_reverse(breaks = seq(1990,2017,3)) + 
   scale_y_continuous(labels = percent) + coord_flip() + 
-  ggtitle("Figure2: Percent of Units With Quality Problems 1991 - 2017") + theme_bw() + 
+  ggtitle("Figure 2: Percent of Units With Quality Problems 1991 - 2017") + theme_bw() + 
   theme(legend.position="none") -> t_1
 ggplotly(t_1)
 ```
@@ -134,6 +124,9 @@ all_data %>% group_by(borough, year) %>%
    summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
   xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() + theme_bw()
 ```
+
+#### Figure 5: Average Household Income and Index by Sub-borough 
+
 ```{r}
 nyc_neighborhoods <- readOGR("Community Districts.geojson")
 
@@ -240,7 +233,9 @@ In this paper we have created a housing quality index that measures poor housing
 index specificaly measures poor housing conditions rather than just quality. We believe it would be benefecial to creat several indexes
 concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
 crime, location, and the index value related.
+
 # References
+
 https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
 
 
