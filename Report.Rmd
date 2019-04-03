@@ -3,8 +3,8 @@ title: "Midterm Project Report: Indexing NYC Hosuing Quality"
 author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Edward Aaronson, Zoe Girkin"
 date: "April 3, 2019"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 # Introduction
@@ -118,6 +118,7 @@ ggplotly(g1)
 ```
 
 Figure 4 shows the poor condition of housing in five different boroughs in New York city in the period of 1991 to 2017. Overall, all five boroughs had an improvement of the house quality. Bronx had the worse housing condition and Stalen Island had the best housing condition.
+
 
 ```{r}
 all_data %>% group_by(borough, year) %>%
@@ -237,5 +238,7 @@ crime, location, and the index value related.
 # References
 
 https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+
+https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
 
 
