@@ -1,11 +1,23 @@
 ---
-title: "Indexing NYC Hosuing Quality"
-author: "Ahern Nelson"
-date: "April 2, 2019"
+title: "Midterm Project Report: Indexing NYC Hosuing Quality"
+author: "Group C" 
+Ayako Zrust, 
+Anayeli Ochoa, 
+Ahern Nelson, 
+ThienNgo Le, 
+Edward Aaronson, 
+Zoe Girkin"
+date: "April 3, 2019"
 output:
   html_document: default
   pdf_document: default
 ---
+
+# Introduction
+
+In the period of 1991 to 2017, housing quality in New York has improved dramatically; however, some sectors of the housing stock continue to face poor conditions and some specific maintenance deficiencies continue to show higher prevalence. In this project, we develop an index that presents poor qualtity of housing in New York by measuring the physical deficiencies to show how the prevalence of these issues has shifted over time. 
+
+# Methodology
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -31,8 +43,8 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
 }
 ```
 
-# Introduction
-# Methodology
+We decided to build our index base on 22 variable from the data that have direct effects on quality of housing in New York city. The table below show details of variables that we used and how we weight the variable.
+
 | Item | Description      | NYCHVS Variable | Score |
 | ---- | ---------------- | --------------- | ----- |
 | 1 | Exterior Walls: Missing brick, sliding or other | d1 | 2 |
@@ -57,16 +69,23 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
 | 20 | Toilet Breakdowns | 25c | 3 if any, 5 if no toliet or plumbing |
 | 21 | Presence of mice or rats | 35a | 3 |
 | 22 | Water Leakage | 38a | 3 |
+
 # Visualization
+Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent(64%) of units that has 0 poor quality scores.
+
 ```{r freq dist}
 all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
   mutate(percent = count/sum(count)) %>%
   ggplot(aes(x=pqi,y=percent)) + geom_line(aes(col=factor(year))) + 
   scale_y_continuous(labels=percent) + 
-  ggtitle("Index Percent Frequency Distribution 1991-2017") +
-  xlab("Index Score") + ylab("") + labs(col="") + theme_bw() -> g 
+  ggtitle("Figure1: Index Percent Frequency Distribution 1991-2017") +
+  xlab("Index Score") + ylab("Percent") + labs(col="") + theme_bw() -> g 
 ggplotly(g)
 ```
+
+
+Figure 2 shows percent the percent of ccupied units with poor quality scores. Over the period of 1991 to 2017, most of the units has poor quality scores between 1 and 10 points; very little units that has the poor quality scroes over 20 points.  
+
 ```{r}
 all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
                                           `Index of 1-10` = sum(pqi %in% 1:10)/n(),
@@ -76,10 +95,14 @@ all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(),
   mutate(Group=factor(Group, levels = c("Index > 0", "Index of 1-10", "Index of 11-20", "Index > 20"))) %>%
   ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
   facet_wrap(facets = ~Group, ncol = 4) + scale_x_reverse(breaks = seq(1990,2017,3)) + 
-  scale_y_continuous(labels = percent) + coord_flip() + theme_bw() + 
+  scale_y_continuous(labels = percent) + coord_flip() + 
+  ggtitle("Figure2: Percent of Units With Quality Problems 1991 - 2017") + theme_bw() + 
   theme(legend.position="none") -> t_1
 ggplotly(t_1)
 ```
+
+Figure 3 tracks trends in poor quality index scores during the period of 1991 to 2017. We decided to report the means, medians, 75th percentiles, 95th percentiles, and 99th percentiles. In most of the years, the median had the poor quality scores of 0. The mean ranged from 4.0 in 1991 to 2.5  in 2017. The 99th percentiles clearly show the improvement of housing in New York( from 25 poor quality points in 1991 to 18 porr quality points in 2017)
+
 ```{r}
 all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
                                           p_95 = quantile(pqi,.95),
@@ -93,14 +116,27 @@ all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
   ggplot(aes(x=year, y=value, col =line)) + geom_line(size=1) +
   scale_color_d3(name="") + theme_bw() + 
   scale_x_continuous(breaks = seq(1990,2017,3)) + ylab("Index Score") + 
-  ggtitle("Index Trends 1991-2017") + xlab("") -> g1
+  ggtitle("Figure 3: Index Trends 1991-2017") + xlab("") -> g1
 ggplotly(g1)
 ```
+
+Figure 4 shows the poor condition of housing in five different boroughs in New York city in the period of 1991 to 2017. Overall, all five boroughs had an improvement of the house quality. Bronx had the worse housing condition and Stalen Island had the best housing condition.
+
 ```{r}
 all_data %>% group_by(borough, year) %>%
-   summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + theme_bw()
+   summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
+  xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() + theme_bw()
 ```
 
 # Problems
+
+
+
 # Conclusion
+
+
+
 # References
+https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+
+
