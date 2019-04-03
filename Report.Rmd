@@ -9,7 +9,7 @@ output:
 
 # Introduction
 
-In the period of 1991 to 2017, housing quality in New York has improved dramatically; however, some sectors of the housing stock continue to face poor conditions and some specific maintenance deficiencies continue to show higher prevalence. In this project, we develop an index that presents poor qualtity of housing in New York by measuring the physical deficiencies to show how the prevalence of these issues has shifted over time. 
+In the period of 1991 to 2017, housing quality in New York has improved dramatically; however, some sectors of the housing stock continue to face poor conditions and some specific maintenance deficiencies continue to show higher prevalence. In this project, we develop an index that presents poor qualtity of housing in New York by measuring the physical deficiencies to show how the prevalence of these issues has shifted over time. We use data from the *New York City Housing and Vacancy Survey* (NYCHVS)[^fn1] and follow a similar procedure similiar to the one found in the *American Housing Survey: PQI*[^fn2]
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
@@ -38,9 +38,21 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
 
  
 # Methodology
-The index measures weighted sums of interactions between 22 variables that the authors chose. 
+The index measures wighted sums of 22 variables that the authors chose. 
 The selected variables were chosen if the authors agreed they described poor housing conditions.
-The index is not exhaustive, and potentially more data could be collected to better suit our purpose.
+The index is not exhaustive, as the author's decided to build and index that is robust with respect to time. Variables that were only collected for a small number of years were disregarded to avoid inflating values during year for which a unique variable has been. Potentially more data could be collected/used to better suit our purpose.
+
+The authors chose not to include financial data, such as rent or income,
+in the index. This is largerly do the complexity of implementing such a measure. 
+Particularly poor hosuing condition may be a good predictior of income, 
+but the other direction is not neccesarily true. This is better visualised in **(Fig 5)** below.
+
+The index below is an ordinal measurse. That is, the higher the score the more indicative of 
+poor housing conditions. Some items in the index have been ranked by the authors accordingly. 
+However, due to the qualitative nature of this scoring the authors chose to only rank a few
+variables and in other cases deafult to a score of two. Further analysis for choosing optimal
+weights is reccomended. 
+
 
 | Item | Description      | NYCHVS Variable | Score |
 | ---- | ---------------- | --------------- | ----- |
@@ -68,20 +80,21 @@ The index is not exhaustive, and potentially more data could be collected to bet
 | 22 | Water Leakage | 38a | 3 |
 
 # Visualization
-Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent(64%) of units that has 0 poor quality scores.
+Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent (64%) of units that has 0 poor quality scores.
 
 ```{r freq dist}
 all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
   mutate(percent = count/sum(count)) %>%
   ggplot(aes(x=pqi,y=percent)) + geom_line(aes(col=factor(year))) + 
-  scale_y_continuous(labels=percent) + 
+  scale_y_continuous(labels=percent, breaks = (0:6)/10) + 
+  scale_x_continuous(breaks=seq(1,49,4)) + 
   ggtitle("Figure 1: Index Percent Frequency Distribution 1991-2017") +
-  xlab("Index Score") + ylab("Percent") + labs(col="") + theme_bw() -> g 
-ggplotly(g)
+  xlab("Index Score") + ylab("") + labs(col="") + theme_bw() -> g 
+g
 ```
 
 
-Figure 2 shows percent the percent of ccupied units with poor quality scores. Over the period of 1991 to 2017, most of the units has poor quality scores between 1 and 10 points; very little units that has the poor quality scroes over 20 points.  
+Figure 2 shows percent the percent of occupied units with poor quality scores. Over the period of 1991 to 2017, most of the units has poor quality scores between 1 and 10 points; very little units that has the poor quality scroes over 20 points.  
 
 ```{r}
 all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
@@ -92,13 +105,13 @@ all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(),
   mutate(Group=factor(Group, levels = c("Index > 0", "Index of 1-10", "Index of 11-20", "Index > 20")))%>%
   ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
   facet_wrap(facets = ~Group, ncol = 4) + scale_x_reverse(breaks = seq(1990,2017,3)) + 
-  scale_y_continuous(labels = percent) + coord_flip() + 
+  scale_y_continuous(labels = percent) + coord_flip() + xlab("") + ylab("") +
   ggtitle("Figure 2: Percent of Units With Quality Problems 1991 - 2017") + theme_bw() + 
   theme(legend.position="none") -> t_1
-ggplotly(t_1)
+t_1
 ```
 
-Figure 3 tracks trends in poor quality index scores during the period of 1991 to 2017. We decided to report the means, medians, 75th percentiles, 95th percentiles, and 99th percentiles. In most of the years, the median had the poor quality scores of 0. The mean ranged from 4.0 in 1991 to 2.5  in 2017. The 99th percentiles clearly show the improvement of housing in New York( from 25 poor quality points in 1991 to 18 porr quality points in 2017)
+Figure 3 tracks trends in poor quality index scores during the period of 1991 to 2017. We decided to report the means, medians, 75th percentiles, 95th percentiles, and 99th percentiles. In most of the years, the median had the poor quality scores of 0. The mean ranged from 4.0 in 1991 to 2.5  in 2017. The 99th percentiles clearly show the improvement of housing in New York( from 25 poor quality points in 1991 to 18 poor quality points in 2017)
 
 ```{r}
 all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
@@ -114,20 +127,31 @@ all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
   scale_color_d3(name="") + theme_bw() + 
   scale_x_continuous(breaks = seq(1990,2017,3)) + ylab("Index Score") + 
   ggtitle("Figure 3: Index Trends 1991-2017") + xlab("") -> g1
-ggplotly(g1)
+g1
 ```
 
 Figure 4 shows the poor condition of housing in five different boroughs in New York city in the period of 1991 to 2017. Overall, all five boroughs had an improvement of the house quality. Bronx had the worse housing condition and Stalen Island had the best housing condition.
 
 ```{r}
 all_data %>% group_by(borough, year) %>%
-   summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
-  xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() + theme_bw()
+   summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + 
+  geom_col(aes(fill=borough), position="dodge") + 
+  scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + 
+  ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
+  xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() -> g_0
+g_0
 ```
+
+Figure 5 shows a map of New York City Sub-boroughs and shades the regions by mean household income and index score.
+The darker shade of blue indicated lower  mean income, and the darker shade of red indicated a lower hosuing quality.
+The plot shows what one might expect, i.e., neighborhoods with lower quality hosuing genrally correspond to
+a lower average household income. However, the value mean household income clearly does not predict
+housing quality indicating that it would not have been appropraite to include such value in the index without further
+considerations.
 
 #### Figure 5: Average Household Income and Index by Sub-borough 
 
-```{r}
+```{r, message=FALSE}
 nyc_neighborhoods <- readOGR("Community Districts.geojson")
 
 ### Read in data and format ###########
@@ -141,7 +165,7 @@ data17 %>% mutate(borough = recode(borough,
                                    `4` = 4,
                                    `5` = 5)) -> data17
 
-###### Fuckery ###############
+###### recoding  ###############
 rcd <- function(key,replace) {
   temp_boro[temp_boro == key] <<- replace
 }
@@ -157,7 +181,7 @@ temp_boro[temp_boro==109] <- 107
 temp_boro[temp_boro==110] <- 108
 temp_boro[temp_boro==111] <- 109
 temp_boro[temp_boro==112] <- 110
-### More fuckery ###########
+### More recoding ###########
 rcd(202,201)
 rcd(203,202)
 rcd(204,203)
@@ -220,22 +244,23 @@ sync(A,B)
 ```
 
 # Limitations and Future Plans
-Ultimately, we did not arrive at a method to test our index. 
-However the authors believe the index should be validated against a variable indicative of quality, 
-but not measured in the index. It is in future plans to find data to perfom such a validation test.
-Potential variables were omitted due to the fact they only had data for recent years. 
-Whether a unit has functioning air conditioning was only measured during the years 2014 and 2017. 
-In measuring housing quality this variable would have been useful. 
-The authors' have chosen not to include such datas it may inflate the index scores for later years. 
-However, there are plans to create strong indexes for the recent years. 
+In this paper we have created a housing quality index that measures poor housing conditions. 
+We remark that housing conditions have been slowly improving over time, particularly among units with high index values. 
+Our goal was to measure hosuing quality and our proposed index specificaly measures poor housing conditions rather than just quality. 
+We believe it would be benefecial to create several indexes concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes 
+when quanitfying hosuing quality. We also reccomend further exploration of the spatial component of the data to see if location and the index value relate to other factors such as crime.
 
-In this paper we have created a housing quality index that measures poor housing conditions. We remark that housing conditions have been slowly improving over time, particularly among units with high index values. Our goal was to measure hosuing quality and our proposed
-index specificaly measures poor housing conditions rather than just quality. We believe it would be benefecial to creat several indexes
-concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
-crime, location, and the index value related.
+The authors believe the index should be validated against a variable indicative of quality, 
+but not measured in the index. However, no such procedure was performed and it is in future plans to find data to perfom such a validation test.
+Potential variables were omitted due to the fact they only had data for recent years. 
+For example, whether a unit has functioning air conditioning was only measured during the years 2014 and 2017. 
+In measuring housing quality this variable would have been useful. 
+There are plans to create strong indexes for the recent years. 
+
+
 
 # References
-
-https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+[^fn1]: https://www.census.gov/programs-surveys/nychvs.html
+[^fn2]: https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
 
 
