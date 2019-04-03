@@ -24,15 +24,17 @@ all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>%
   scale_y_continuous(labels=percent) -> g 
 ggplotly(g)
 ### Table #########
-all_data %>% group_by(year) %>% summarise(`(%) Index > 0` = sum(pqi > 0)/n(), 
-                                          `(%) Index of 1-10` = sum(pqi %in% 1:10)/n(),
-                                          `(%) Index of 11-20`= sum(pqi %in% 11:20)/n(),
-                                          `(%) Index of > 20` = sum(pqi>20)/n()) -> pqi_table
-  pqi_table %>% gather(Group, Percent, -one_of("year")) %>% rename(Year = year) %>%
-    arrange(Year) %>%
+all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
+                                          `Index of 1-10` = sum(pqi %in% 1:10)/n(),
+                                          `Index of 11-20`= sum(pqi %in% 11:20)/n(),
+                                          `Index > 20` = sum(pqi>20)/n()) %>% 
+  gather(Group, Percent, -one_of("year")) %>% rename(Year = year) %>% 
+  mutate(Group=factor(Group, levels = c("Index > 0", "Index of 1-10", "Index of 11-20", "Index > 20"))) %>%
   ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
-  facet_wrap(facets = ~Group, ncol = 4) + scale_x_continuous(breaks = seq(1990,2017,3)) + 
-  scale_y_continuous(labels = percent) + coord_flip() + theme_bw() -> t
+  facet_wrap(facets = ~Group, ncol = 4) + scale_x_reverse(breaks = seq(1990,2017,3)) + 
+  scale_y_continuous(labels = percent) + coord_flip() + theme_bw() + 
+  theme(legend.position="none") -> t
+ggplotly(t)
 ### Trend Lines ############
 all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
                                           p_95 = quantile(pqi,.95),
@@ -42,22 +44,25 @@ all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
                                           Median = median(pqi)) %>% ungroup(year) %>% 
   gather(line, value, c(p_99,p_95,p_90,p_75,Mean,Median)) %>% 
   mutate(line=factor(line,levels=c("p_99","p_95","p_90","p_75","Mean","Median"))) %>%
-  ggplot(aes(x=year, y=value, col =line)) + geom_line(size=1) + scale_color_d3() + theme_bw() +
-  scale_x_continuous(breaks = seq(1990,2017,3)) -> g1
+  ggplot(aes(x=year, y=value, col =line)) + geom_line(size=1) +
+  scale_color_d3(name="", labels=c(paste0(c(99,95,90,75),"th Percentile"),"Mean", "Median")) + 
+  theme_bw() + scale_x_continuous(breaks = seq(1990,2017,3)) + ylab("Index Score") + 
+  ggtitle("Index Trends 1991-2017") + xlab("") -> g1
+ggplotly(g1)
 ## Testing against hhinc #########
 all_data %>% filter(oop_rent < 75000) %>%
 ggplot(aes(x=pqi,y=oop_rent)) + 
   geom_point(aes(col=factor(n_room)), position = "jitter", alpha = .4) + 
   facet_wrap(facets = ~borough) -> t1
 ## Income eda #########
-all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>% 
+all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>% filter(pqi>0) %>%
     mutate(hhinc_part = case_when(hhinc %in% min(hhinc):quantile(hhinc,.25) ~ "q1",
                                   hhinc %in% (quantile(hhinc,.25)+1):quantile(hhinc,.50) ~ "q2",
                                   hhinc %in% (quantile(hhinc,.50)+1):quantile(hhinc,.75) ~ "q3",
                                   hhinc %in% (quantile(hhinc,.75)+1):max(hhinc) ~ "q4")) %>% 
     ggplot() + geom_boxplot(aes(x=hhinc_part, y=pqi)) -> g4
   g4 %>% ggplotly()
-  all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>% 
+  all_data %>% select(pqi, hhinc) %>% filter(!is.na(hhinc)) %>%
     mutate(pqi_part = case_when(pqi %in% (quantile(pqi,.50)+1):quantile(pqi,.75) ~ "q1",
                                   pqi %in% (quantile(pqi,.75)+1):quantile(pqi,.90) ~ "q2",
                                   pqi %in% (quantile(pqi,.90)+1):quantile(pqi,.95) ~ "q3",
@@ -71,5 +76,3 @@ ggplotly(g)
 ggplotly(g1)
 t1
 
-
-data[,col_to_keep]            
