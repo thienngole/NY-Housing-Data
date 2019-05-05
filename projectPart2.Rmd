@@ -1,30 +1,68 @@
----
-title: "Untitled"
-author: "ThienNgoLe"
-date: "5/5/2019"
-output: html_document
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r}
+all_data <- read.csv("all_data.csv", stringsAsFactors = F)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+show(all_data)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+my.reg <- lm(pqi ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+summary(my.reg)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+all_data$X_25c[all_data$X_25c == 2] <- 0
+all_data$X_25c[all_data$X_25c == 8] <- 0
+all_data$X_25c[all_data$X_25c == 9] <- 0
+```
+
+
+
+```{r}
+my.logreg <- glm(X_25c ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+summary(my.logreg)
+```
+
+
+
+```{r}
+library(dplyr)
+library(class)
+# Change this value to try different k:
+ktry <- 3
+# Distance can only be computed for numerical explanatory variables,
+# so remove Species. Also, for this example, remove Sepal.Length
+# and Sepal.Width:
+train_data <- select(all_data, -c(borough, pqi, hhinc, X_30a))
+my.knn <- knn(train = train_data, 
+              test = train_data, 
+              cl = all_data$borough, 
+              k = ktry)
+
+borough <- data.frame(Actual = all_data$borough, Predicted = my.knn)
+
+confusion <- table(borough)
+confusion
+
+sum(diag(confusion)) / nrow(all_data)
+```
+
+```{r}
+all_data$borough
+```
+
+```{r}
+pqi
+```
+
+
+
+
+
+
+
+

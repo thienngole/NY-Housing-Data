@@ -1,0 +1,33 @@
+---
+title: "Index Table"
+author: "Ahern Nelson"
+date: "April 1, 2019"
+output: html_document
+---
+
+| Item | Description      | NYCHVS Variable | Score |
+| ---- | ---------------- | --------------- | ----- |
+| 1 | Exterior Walls: Missing brick, sliding or other | d1 | 2 |
+| 2 | EXterior Walls: Sloping or bulgin walls | d2 | 2 |
+| 3 | Exterior walls: Major Cracks | d3 | 2 |
+| 4 | Exterior Walls: Loose or hanging corvice, roof, etc. | d4 | 2 |
+| 5 | Interior Walls: Cracks or holes | 36a | 2 |
+| 6 | Interior Walls: Broken plaster or peeling paint | 37a | 2 |
+| 7 | Broken or missing windows | e1 | 5 |
+| 8 | Rotten or loose windows | e2 | 2 |
+| 9 | Boarded up windows | e3 | 3 |
+| 10 | Sagging or sloping floors | g1 | 2 |
+| 11 | Slanted/shifted doorsills or frames | g2 | 2 |
+| 12 | Deep wear in floor causing depressions | g3 | 2 |
+| 13 | Holes or missing flooring | g4 | 2 |
+| 14 | Stairs: Loose, broken, or missing stair | f1 | 2 |
+| 15 | Stairs: Loose, broken, or missing setps | f2 | 2 |
+| 16 | No interior steps or stairways | f4 | 2 |
+| 17 | No exterior steps or stairways | f5 | 2 |
+| 18 | Number of heating equipment breakdowns | 32b | 2 per break down |
+| 19 | Kitchen facilities fucntioning | 26c | 3 if no, 5 if no kitchen facilities |
+| 20 | Toilet Breakdowns | 25c | 3 if any, 5 if no toliet or plumbing |
+| 21 | Presence of mice or rats | 35a | 3 |
+| 22 | Water Leakage | 38a | 3 | 
+
+
