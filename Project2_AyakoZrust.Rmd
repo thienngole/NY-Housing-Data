@@ -1,0 +1,163 @@
+---
+title: "Project 2"
+author: "Ayako Zrust"
+date: "May 6, 2019"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(rpart)
+```
+
+```{r}
+filename <- file.choose() # all_data.csv
+#filename <- '/home/aya/all_data.csv'
+orig_data <- read.csv(filename, header = TRUE)
+```
+
+
+### Preprocess hhinc (99998 = not reported & 999999, 9999999 = No income)
+```{r}
+# Split data in 2 (1991-1999 and 2002-2017)
+data91_99 <- filter(orig_data, year == 91 | year == 93 | year == 96 | year == 99 )
+data02_17 <- filter(orig_data, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
+
+# Remove 999998 = Not Reported *** exist only in 1991
+data91_99 <- filter(data91_99, hhinc != 999998)
+
+# replace 999999 and 9999999  = No Income to 0
+data91_99$hhinc <- ifelse(data91_99$hhinc == 999999, 0 , data91_99$hhinc)
+data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
+
+# concatenate the 2 dataframe back
+orig_data <- rbind(data91_99, data02_17)
+```
+
+
+
+## 1. Multiple Regression Analysis
+```{r}
+reg_data <- select(orig_data, hhinc, X_15a, X_30a, X_31b, mgrent, npr, X_24a,pqi)
+
+# recode some value
+reg_data$X_15a <- ifelse(reg_data$X_15a == 9999, 0 , reg_data$X_15a) # 9999 = not applicable = 0
+reg_data$X_15a <- ifelse(reg_data$X_15a == 99999, 0 , reg_data$X_15a)
+reg_data <- filter(reg_data, X_15a != 9998) # drop "not reported"
+reg_data <- filter(reg_data, X_15a != 99998) # drop "not reported"
+
+reg_data$X_30a <- ifelse(reg_data$X_30a == 9999, 0 , reg_data$X_30a)
+reg_data$X_30a <- ifelse(reg_data$X_30a == 99999, 0 , reg_data$X_30a)
+reg_data <- filter(reg_data, X_30a != 9998) # drop "not reported"
+reg_data <- filter(reg_data, X_30a != 99998) # drop "not reported"
+
+reg_data$X_31b <- ifelse(reg_data$X_31b == 9999, 0 , reg_data$X_31b)
+reg_data$X_31b <- ifelse(reg_data$X_31b == 99999, 0 , reg_data$X_31b)
+reg_data <- filter(reg_data, X_31b != 9998) # drop "not reported"
+reg_data <- filter(reg_data, X_31b != 99998) # drop "not reported"
+
+reg_data$mgrent <- ifelse(reg_data$mgrent == 9999, 0 , reg_data$mgrent)
+reg_data$mgrent <- ifelse(reg_data$mgrent == 99999, 0 , reg_data$mgrent)
+reg_data <- filter(reg_data, mgrent != 9998) # drop "not reported"
+reg_data <- filter(reg_data, mgrent != 99998) # drop "not reported"
+
+# rename columns
+reg_data <- rename(.data = reg_data, Household_Income = hhinc, Monthly_mortgage_pymt = X_15a,  Monthly_contract_rent = X_30a, Out_of_pocket_rent = X_31b, MOnthly_Gross_Rest = mgrent, Number_of_Rooms = X_24a, Total_index_Score = pqi, Number_of_Persons = npr)
+
+pairs(reg_data, main = "Scatterplot Matrix of NYC Housing Quiality Data")
+```
+
+## 2. Logistic Regression
+## Predict race(white or non-white) from Household Income
+```{r}
+logi_data <- select(orig_data, hhinc, X_1f)
+
+# Remove 98 = Not Reported *** exist only in 1991
+logi_data <- filter(logi_data, X_1f != 98)
+
+# 1 = white(1991 - 1999 & 2017), 100000000000000000000 = 'pure' white (2002 - 2014)
+white <- filter(logi_data, X_1f == 1 | X_1f == 100000000000000000000)
+non_white <- filter(logi_data, X_1f != 1 | X_1f != 100000000000000000000)
+
+white$X_1f <- 0 # white = 0
+non_white$X_1f <- 1 # non-white = 1
+
+# concatenate white data and non-white data
+logi_data <- rbind(white, non_white)
+  
+ggplot(data = logi_data, mapping = aes(x = hhinc, y = X_1f)) +
+  geom_point() +
+  labs(title = "White vs Non-white from household income") +
+  geom_smooth(method = "glm",
+              method.args = list(family = "binomial"),
+              se = FALSE) +
+  scale_x_continuous(name = "Household Income", labels = scales::comma)+
+  scale_y_continuous(name = "White / Non-White")
+```
+### White = 0, Non-white = 1. Higher income indicates more likelyhood of non-white.
+#### Well but this doesn't really look like logistic regression!
+
+## 3. Machine Learning
+## Decision Tree
+## Predict bourough from houseld income and total index score
+```{r}
+tree_data <- select(orig_data, hhinc, pqi, borough)
+
+# Rename borough number to names
+tree_data$borough <- ifelse(tree_data$borough == 1, 'Bronx', tree_data$borough)
+tree_data$borough <- ifelse(tree_data$borough == 2, 'Brooklyn', tree_data$borough)
+tree_data$borough <- ifelse(tree_data$borough == 3, 'Manhattan', tree_data$borough)
+tree_data$borough <- ifelse(tree_data$borough == 4, 'Queens', tree_data$borough)
+tree_data$borough <- ifelse(tree_data$borough == 5, 'Staten Island', tree_data$borough)
+
+# rename column names 
+tree_data <- rename(.data = tree_data, Household_Income = hhinc, Total_index_Score = pqi)#, Household_Income = hhinc)
+
+# Build Decision tree model
+tree <- rpart(borough ~ Household_Income + Total_index_Score, data = tree_data, 
+              control = rpart.control(minsplit = 20))
+
+
+# show the Decision Tree 
+par(xpd = TRUE)
+plot(tree, compress = TRUE)
+text(tree, use.n = TRUE)
+```
+```{r}
+# Plot scatterplot
+g1 <- ggplot(data = tree_data, mapping = aes(x = Total_index_Score, y = Household_Income, color = borough))+
+  geom_point() +
+  labs(title = "Predict Borough from Household income and Total Index Score") +
+  scale_x_continuous(name = "Total Index Score")+
+  scale_y_continuous(name = "Household Income", labels = scales::comma)
+hhinc_split_1 <- 9.979e+04 # horizontal
+pqi_split <- 3.5 # vertical
+
+splitLines <- data.frame(x1 = pqi_split, x2 = pqi_split, y1 = 0, y2 = hhinc_split_1)
+
+hhinc_split_2 <- 1.199e+04
+
+g1 + geom_hline(yintercept = hhinc_split_1, color = "black", lty = 2)+
+  geom_segment(data = splitLines,
+               mapping = aes(x = x1, y = y1, xend = x2, yend = y2),
+               color = "black", lty = 2)
+
+```
+
+```{r}
+summary(tree)
+
+predType <- predict(tree, type = "class")
+
+types <- data.frame(Actual = tree_data$borough, Predicted = predType)
+
+confusion <- table(types)
+confusion
+
+paste('The correct classification rate is ', (16282 + 12410 + 23120) / (11500 + 2719 + 9816 + 16282 + 7566 + 20557 + 13303 + 12410 + 14531 + 8696 + 7349 + 23120 + 1354 + 2266 + 4761)*100, '%')
+```
+
+```{r}
+
+```
