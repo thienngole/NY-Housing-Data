@@ -243,10 +243,36 @@ show(all_data)
 
 
 ```{r}
-my.reg <- lm(pqi ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = all_data)
 summary(my.reg)
 ```
 
+```{r}
+### Preprocess hhinc (99998 = not reported & 999999, 9999999 = No income) ###
+# Split data in 2 (1991-1999 and 2002-2017)
+#library(dplyr)_
+data91_99 <- filter(all_data, year == 91 | year == 93 | year == 96 | year == 99 )
+data02_17 <- filter(all_data, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
+
+# Remove 999998 = Not Reported *** exist only in 1991
+data91_99 <- filter(data91_99, hhinc != 999998)
+
+# replace 999999 and 9999999  = No Income to 0
+data91_99$hhinc <- ifelse(data91_99$hhinc == 999999, 0 , data91_99$hhinc)
+data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
+
+# concatenate the 2 dataframe back
+all_data <- rbind(data91_99, data02_17)
+dim(all_data)
+
+```   
+
+```{r}
+
+```
+   
+   
+   
 ```{r}
 all_data$X_25c[all_data$X_25c == 2] <- 0
 all_data$X_25c[all_data$X_25c == 8] <- NA
@@ -256,7 +282,7 @@ all_data$X_25c[all_data$X_25c == 9] <- NA
 
 
 ```{r}
-my.logreg <- glm(X_25c ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = all_data)
 summary(my.logreg)
 ```
 
@@ -286,12 +312,12 @@ all_data$borough
 ```
 
 ```{r}
-pqi
+pqi 
 ```
 
 
 
-
+hello
 
 
 
