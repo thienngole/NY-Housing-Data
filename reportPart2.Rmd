@@ -171,7 +171,7 @@ rcd(210,208)
 rcd(211,209)
 rcd(212,210)
 nyc_neighborhoods$boro_cd <- temp_boro
-## Less fuckery
+
 # prep
 data17 %>% filter(sub<10) %>%
   unite(boro_cd,borough, sub, sep="0") %>% select(boro_cd,pqi) -> sub17_1
@@ -258,8 +258,6 @@ data_part2$X_31b[data_part2$X_31b == 99998] <- NA # Not reported
 ```
    
 
-
-
 ```{r}
 my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = data_part2)
 summary(my.reg)
@@ -272,35 +270,47 @@ data_part2$X_25c[data_part2$X_25c == 2] <- 0  # NO toilet breakdown
 data_part2$X_25c[data_part2$X_25c == 3] <- NA # NO toilet in the apartment
 data_part2$X_25c[data_part2$X_25c == 8] <- NA # Not reported
 data_part2$X_25c[data_part2$X_25c == 9] <- NA # Not applicable (No plumbing facilities)
+```
 
+```{r}
 my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = data_part2)
 summary(my.logreg)
 ```
 
 
+
+
+
+
+
 # Machine learning procedure
+
 
 
 ```{r}
 library(dplyr)
 library(class)
+
 # Change this value to try different k:
 ktry <- 3
 # Distance can only be computed for numerical explanatory variables,
 # so remove Species. Also, for this example, remove Sepal.Length
 # and Sepal.Width:
-train_data <- select(data_part2, -c(borough, pqi, hhinc, X_30a))
-train_data <- na.omit(train_data)
+train_data <- select(na.omit(data_part2), c(borough, pqi, hhinc, X_30a))
+#train_data <- na.omit(train_data)
 my.knn <- knn(train = train_data, 
               test = train_data, 
               cl = train_data$borough, 
               k = ktry)
-borough <- data.frame(Actual = all_data$borough, Predicted = my.knn)
+borough <- data.frame(Actual = train_data$borough, Predicted = my.knn)
 confusion <- table(borough)
 confusion
-sum(diag(confusion)) / nrow(all_data)
+sum(diag(confusion)) / nrow(data_part2)
 ```
 
+```{r}
+sum(diag(confusion)) / nrow(data_part2)
+```
 
 
 
