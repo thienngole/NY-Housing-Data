@@ -263,22 +263,22 @@ data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 
 # concatenate the 2 dataframe back
 all_data <- rbind(data91_99, data02_17)
-dim(all_data)
-
 ```   
 
 ```{r}
+all_data$X_30a[all_data$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
+all_data$X_30a[all_data$X_30a == 99998] <- NA # Not reported
 
+all_data$X_31b[all_data$X_31b == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
+all_data$X_31b[all_data$X_31b == 99998] <- NA # Not reported
 ```
-   
-   
    
 ```{r}
-all_data$X_25c[all_data$X_25c == 2] <- 0
-all_data$X_25c[all_data$X_25c == 8] <- NA
-all_data$X_25c[all_data$X_25c == 9] <- NA
+all_data$X_25c[all_data$X_25c == 2] <- 0  # NO toilet breakdown
+all_data$X_25c[all_data$X_25c == 3] <- NA # NO toilet in the apartment
+all_data$X_25c[all_data$X_25c == 8] <- NA # Not reported
+all_data$X_25c[all_data$X_25c == 9] <- NA # Not applicable (No plumbing facilities)
 ```
-
 
 
 ```{r}
