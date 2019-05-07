@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = FALSE)
 pacman::p_load("tigris", "leaflet", "sp", "maptools", "broom", "httr",
                "rgdal","dplyr","ggplot2","tidyr","scales", "plotly","ggsci", "mapview")
 ## Read in data that you created(with etra column)
-all_data <- read.csv("merged_datav2.csv", stringsAsFactors = F)
+data_part1 <- read.csv("merged_datav2.csv", stringsAsFactors = F)
 ### the rest
 get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
   temp <- tempfile()
@@ -72,7 +72,7 @@ The index is not exhaustive, and potentially more data could be collected to bet
 Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent(64%) of units that has 0 poor quality scores.
 
 ```{r freq dist}
-all_data %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
+data_part1 %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
   mutate(percent = count/sum(count)) %>%
   ggplot(aes(x=pqi,y=percent)) + geom_line(aes(col=factor(year))) + 
   scale_y_continuous(labels=percent) + 
@@ -85,7 +85,7 @@ ggplotly(g)
 Figure 2 shows percent the percent of ccupied units with poor quality scores. Over the period of 1991 to 2017, most of the units has poor quality scores between 1 and 10 points; very little units that has the poor quality scroes over 20 points.  
 
 ```{r}
-all_data %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
+data_part1 %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
                                           `Index of 1-10` = sum(pqi %in% 1:10)/n(),
                                           `Index of 11-20`= sum(pqi %in% 11:20)/n(),
                                           `Index > 20` = sum(pqi>20)/n()) %>% 
@@ -102,7 +102,7 @@ ggplotly(t_1)
 Figure 3 tracks trends in poor quality index scores during the period of 1991 to 2017. We decided to report the means, medians, 75th percentiles, 95th percentiles, and 99th percentiles. In most of the years, the median had the poor quality scores of 0. The mean ranged from 4.0 in 1991 to 2.5  in 2017. The 99th percentiles clearly show the improvement of housing in New York( from 25 poor quality points in 1991 to 18 porr quality points in 2017)
 
 ```{r}
-all_data %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
+data_part1 %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
                                           p_95 = quantile(pqi,.95),
                                           p_90 = quantile(pqi,.90),
                                           p_75 = quantile(pqi,.75),
@@ -122,7 +122,7 @@ Figure 4 shows the poor condition of housing in five different boroughs in New Y
 
 
 ```{r}
-all_data %>% group_by(borough, year) %>%
+data_part1 %>% group_by(borough, year) %>%
    summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
   xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() + theme_bw()
 ```
@@ -134,7 +134,7 @@ nyc_neighborhoods <- readOGR("Community Districts.geojson")
 ### Read in data and format ###########
 data17 <- get_nychsv(year=2017) 
 data17[which(data17$hhinc==9999999),"hhinc"] <- NA
-data17$pqi <- all_data[all_data$year==2017, "pqi"]
+data17$pqi <- data_part1[data_part1$year==2017, "pqi"]
 data17 %>% mutate(borough = recode(borough,
                                    `1` = 2,
                                    `3` = 1,
@@ -227,20 +227,15 @@ crime, location, and the index value related.
 
 # PART 2:  Statistical analyses
 
-#
-
-```{r}
-#all_data <- read.csv("all_data.csv", stringsAsFactors = F)
-```
 
 # Multiple regression analyses
 
 ```{r}
-### Preprocess hhinc (99998 = not reported & 999999, 9999999 = No income) ###
-# Split data in 2 (1991-1999 and 2002-2017)
-#library(dplyr)_
-data91_99 <- filter(all_data, year == 91 | year == 93 | year == 96 | year == 99 )
-data02_17 <- filter(all_data, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
+#Preprocess the data
+data_part2 <- read.csv("all_data.csv", stringsAsFactors = F)
+
+data91_99 <- filter(data_part2, year == 91 | year == 93 | year == 96 | year == 99 )
+data02_17 <- filter(data_part2, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
 
 # Remove 999998 = Not Reported *** exist only in 1991
 data91_99 <- filter(data91_99, hhinc != 999998)
@@ -250,30 +245,35 @@ data91_99$hhinc <- ifelse(data91_99$hhinc == 999999, 0 , data91_99$hhinc)
 data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 
 # concatenate the 2 dataframe back
-all_data <- rbind(data91_99, data02_17)
-dim(all_data)
-
+data_part2 <- rbind(data91_99, data02_17)
+dim(data_part2)
 ```   
 
 
 ```{r}
-my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = all_data)
+data_part2$X_30a[data_part2$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
+data_part2$X_30a[data_part2$X_30a == 99998] <- NA # Not reported
+data_part2$X_31b[data_part2$X_31b == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
+data_part2$X_31b[data_part2$X_31b == 99998] <- NA # Not reported
+```
+   
+
+
+
+```{r}
+my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = data_part2)
 summary(my.reg)
 ```
 
 # Logistic regression analyses
    
-   
 ```{r}
-all_data$X_25c[all_data$X_25c == 2] <- 0
-all_data$X_25c[all_data$X_25c == 8] <- NA
-all_data$X_25c[all_data$X_25c == 9] <- NA
-```
+data_part2$X_25c[data_part2$X_25c == 2] <- 0  # NO toilet breakdown
+data_part2$X_25c[data_part2$X_25c == 3] <- NA # NO toilet in the apartment
+data_part2$X_25c[data_part2$X_25c == 8] <- NA # Not reported
+data_part2$X_25c[data_part2$X_25c == 9] <- NA # Not applicable (No plumbing facilities)
 
-
-
-```{r}
-my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = all_data)
+my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = data_part2)
 summary(my.logreg)
 ```
 
@@ -289,10 +289,11 @@ ktry <- 3
 # Distance can only be computed for numerical explanatory variables,
 # so remove Species. Also, for this example, remove Sepal.Length
 # and Sepal.Width:
-train_data <- select(all_data, -c(borough, pqi, hhinc, X_30a))
+train_data <- select(data_part2, -c(borough, pqi, hhinc, X_30a))
+train_data <- na.omit(train_data)
 my.knn <- knn(train = train_data, 
               test = train_data, 
-              cl = all_data$borough, 
+              cl = train_data$borough, 
               k = ktry)
 borough <- data.frame(Actual = all_data$borough, Predicted = my.knn)
 confusion <- table(borough)
