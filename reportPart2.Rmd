@@ -6,6 +6,7 @@ output:
   pdf_document: default
   html_document: default
 ---
+# PART 1: Preliminary analysis
 
 # Introduction
 
@@ -223,29 +224,16 @@ index specificaly measures poor housing conditions rather than just quality. We 
 concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
 crime, location, and the index value related.
 
-# References
 
-https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+# PART 2:  Statistical analyses
 
-https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
-
-
-#PART2
-
+#
 
 ```{r}
-all_data <- read.csv("all_data.csv", stringsAsFactors = F)
+#all_data <- read.csv("all_data.csv", stringsAsFactors = F)
 ```
 
-```{r}
-show(all_data)
-```
-
-
-```{r}
-my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = all_data)
-summary(my.reg)
-```
+# Multiple regression analyses
 
 ```{r}
 ### Preprocess hhinc (99998 = not reported & 999999, 9999999 = No income) ###
@@ -267,10 +255,13 @@ dim(all_data)
 
 ```   
 
-```{r}
 
+```{r}
+my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = all_data)
+summary(my.reg)
 ```
-   
+
+# Logistic regression analyses
    
    
 ```{r}
@@ -286,6 +277,8 @@ my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = all_data)
 summary(my.logreg)
 ```
 
+
+# Machine learning procedure
 
 
 ```{r}
@@ -307,17 +300,14 @@ confusion
 sum(diag(confusion)) / nrow(all_data)
 ```
 
-```{r}
-all_data$borough
-```
-
-```{r}
-pqi 
-```
 
 
 
-hello
+# References
+
+https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+
+https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
 
 
 
