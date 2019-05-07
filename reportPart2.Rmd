@@ -233,6 +233,61 @@ https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
 #PART2
 
 
+```{r}
+all_data <- read.csv("all_data.csv", stringsAsFactors = F)
+```
+
+```{r}
+show(all_data)
+```
+
+
+```{r}
+my.reg <- lm(pqi ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+summary(my.reg)
+```
+
+```{r}
+all_data$X_25c[all_data$X_25c == 2] <- 0
+all_data$X_25c[all_data$X_25c == 8] <- NA
+all_data$X_25c[all_data$X_25c == 9] <- NA
+```
+
+
+
+```{r}
+my.logreg <- glm(X_25c ~ hhinc + X_15a + X_30a + X_31b, data = all_data)
+summary(my.logreg)
+```
+
+
+
+```{r}
+library(dplyr)
+library(class)
+# Change this value to try different k:
+ktry <- 3
+# Distance can only be computed for numerical explanatory variables,
+# so remove Species. Also, for this example, remove Sepal.Length
+# and Sepal.Width:
+train_data <- select(all_data, -c(borough, pqi, hhinc, X_30a))
+my.knn <- knn(train = train_data, 
+              test = train_data, 
+              cl = all_data$borough, 
+              k = ktry)
+borough <- data.frame(Actual = all_data$borough, Predicted = my.knn)
+confusion <- table(borough)
+confusion
+sum(diag(confusion)) / nrow(all_data)
+```
+
+```{r}
+all_data$borough
+```
+
+```{r}
+pqi
+```
 
 
 
