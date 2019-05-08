@@ -277,7 +277,7 @@ poor quality index by subborough. We will model the 5th percentile of household 
 and the 95th percentile of PQI. This is a naive model and not a proper qunatile regression which we plan to employ in the future.
 ```{r}
 data_part2[which(data_part2$hhinc==9999999),"hhinc"] <- NA
-
+data_part2[data_part2$year<100,"year"]<-data_part2[data_part2$year<100,"year"] + 1900
 data_part2 %>% group_by(sba, year) %>% summarise(pqi_95 = quantile(pqi,.95), 
                                                hhinc_05 = quantile(hhinc, .05,na.rm=T)) -> bmod
 head(bmod)
