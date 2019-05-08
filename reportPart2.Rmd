@@ -3,8 +3,8 @@ title: "Midterm Project Report: Indexing NYC Hosuing Quality"
 author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Edward Aaronson, Zoe Girkin"
 date: "April 3, 2019"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 # PART 1: Preliminary analysis
 
@@ -230,6 +230,7 @@ crime, location, and the index value related.
 
 # Multiple regression analyses
 
+
 ```{r}
 #Preprocess the data
 data_part2 <- read.csv("all_data.csv", stringsAsFactors = F)
@@ -246,7 +247,6 @@ data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 
 # concatenate the 2 dataframe back
 data_part2 <- rbind(data91_99, data02_17)
-dim(data_part2)
 ```   
 
 
@@ -256,10 +256,9 @@ data_part2$X_30a[data_part2$X_30a == 99998] <- NA # Not reported
 data_part2$X_31b[data_part2$X_31b == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
 data_part2$X_31b[data_part2$X_31b == 99998] <- NA # Not reported
 ```
-   
 
 ```{r}
-my.reg <- lm(pqi ~ hhinc + X_30a + X_31b, data = data_part2)
+my.reg <- lm(pqi ~ hhinc + X_30a + X_31b + year, data = data_part2)
 summary(my.reg)
 ```
 
@@ -285,7 +284,11 @@ summary(my.logreg)
 
 # Machine learning procedure
 
-
+`1`="Bronx",
+`2`="Brooklyn",
+`3`="Manhattan",
+`4`="Queens", 
+`5`="Staten Island"
 
 ```{r}
 library(dplyr)
@@ -305,9 +308,10 @@ my.knn <- knn(train = train_data,
 borough <- data.frame(Actual = train_data$borough, Predicted = my.knn)
 confusion <- table(borough)
 confusion
-sum(diag(confusion)) / nrow(data_part2)
+
 ```
 
+Correct classification rate
 ```{r}
 sum(diag(confusion)) / nrow(data_part2)
 ```
