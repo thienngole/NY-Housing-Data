@@ -230,11 +230,15 @@ crime, location, and the index value related.
 
 # Multiple regression analyses
 
-For multiple regression model we built a model using our poor quality index as a response variable and household income(hhinc), year, Monthly contract rent(X_30a), and Out of pocket rent (X_31b) as the  explanatory variables.
+For multiple regression model we built a model using our poor quality index(pqi) as a response variable and household income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables.
+
+Our multiple regression model:
+
+Y = 6.876 + X1*(-3.963e-06) + X2*(-1.855e-04) + X3*(-2.279e-03) + X4*(8.665e-04) + X5*(-2.082e-03)
 
 ```{r}
 #Preprocess the data
-data_part2 <- read.csv("all_data.csv", stringsAsFactors = F)
+data_part2 <- read.csv("all_data_v2.csv", stringsAsFactors = F)
 
 data91_99 <- filter(data_part2, year == 91 | year == 93 | year == 96 | year == 99 )
 data02_17 <- filter(data_part2, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
@@ -250,25 +254,24 @@ data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 data_part2 <- rbind(data91_99, data02_17)
 ```   
 
-```{r}
-data_part2$X_31b
-```
-
-
 
 ```{r}
+data_part2$X_28c[data_part2$X_28c == 9999] <- NA # Not applicable (owner occupied or gas and electric not combined)
+data_part2$X_28d2[data_part2$X_28d2 == 9999] <- NA # Not applicable (owner occupied, included in rent, condo, or other fee, or no charge)
 data_part2$X_30a[data_part2$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
 data_part2$X_30a[data_part2$X_30a == 99998] <- NA # Not reported
-data_part2$X_31b[data_part2$X_31b == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
-data_part2$X_31b[data_part2$X_31b == 99998] <- NA # Not reported
 ```
 
 ```{r}
-my.reg <- lm(pqi ~ hhinc + year + X_30a, data = data_part2)
+my.reg <- lm(pqi ~ hhinc + year + X_28c + X_28d2 + X_30a, data = data_part2)
 summary(my.reg)
 ```
 
+
+
 # Logistic regression analyses
+
+For logistic regression model we built a model using the Toilet Brokedowns(X_25c) as a response variable and household income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables.
    
 ```{r}
 data_part2$X_25c[data_part2$X_25c == 2] <- 0  # NO toilet breakdown
@@ -278,7 +281,7 @@ data_part2$X_25c[data_part2$X_25c == 9] <- NA # Not applicable (No plumbing faci
 ```
 
 ```{r}
-my.logreg <- glm(X_25c ~ hhinc + X_30a + X_31b, data = data_part2)
+my.logreg <- glm(X_25c ~ hhinc + X_28c + X_28d2 + X_30a, data = data_part2)
 summary(my.logreg)
 ```
 
