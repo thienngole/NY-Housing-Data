@@ -1,7 +1,7 @@
 ---
-title: "Midterm Project Report: Indexing NYC Hosuing Quality"
-author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Edward Aaronson, Zoe Girkin"
-date: "April 3, 2019"
+title: "Project Report: Indexing NYC Hosuing Quality - Part 2"
+author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Zoe Girkin"
+date: "May 8th, 2019"
 output:
   html_document: default
   pdf_document: default
@@ -39,6 +39,7 @@ get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
 
  
 # Methodology
+
 The index measures weighted sums of interactions between 22 variables that the authors chose. 
 The selected variables were chosen if the authors agreed they described poor housing conditions.
 The index is not exhaustive, and potentially more data could be collected to better suit our purpose.
@@ -69,6 +70,7 @@ The index is not exhaustive, and potentially more data could be collected to bet
 | 22 | Water Leakage | 38a | 3 |
 
 # Visualization
+
 Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent(64%) of units that has 0 poor quality scores.
 
 ```{r freq dist}
@@ -135,11 +137,11 @@ nyc_neighborhoods <- readOGR("Community Districts.geojson")
 data17 <- get_nychsv(year=2017) 
 data17[which(data17$hhinc==9999999),"hhinc"] <- NA
 data17$pqi <- data_part1[data_part1$year==2017, "pqi"]
-data17 %>% mutate(borough = recode(borough,
-                                   `1` = 2,
-                                   `3` = 1,
-                                   `2` = 3,
-                                   `4` = 4,
+data17 %>% mutate(borough = recode(borough, 
+                                   `1` = 2, 
+                                   `3` = 1, 
+                                   `2` = 3, 
+                                   `4` = 4, 
                                    `5` = 5)) -> data17
 ###### Fuckery ###############
 rcd <- function(key,replace) {
@@ -207,23 +209,8 @@ A<-leaflet(map_data) %>%
               color = ~pal(pqi), popup = ~boro_cd) %>% 
   addProviderTiles("CartoDB.Positron")
 sync(A,B)
+
 ```
-
-# Limitations and Future Plans
-Ultimately, we did not arrive at a method to test our index. 
-However the authors believe the index should be validated against a variable indicative of quality, 
-but not measured in the index. It is in future plans to find data to perfom such a validation test.
-Potential variables were omitted due to the fact they only had data for recent years. 
-Whether a unit has functioning air conditioning was only measured during the years 2014 and 2017. 
-In measuring housing quality this variable would have been useful. 
-The authors' have chosen not to include such datas it may inflate the index scores for later years. 
-However, there are plans to create strong indexes for the recent years. 
-
-In this paper we have created a housing quality index that measures poor housing conditions. We remark that housing conditions have been slowly improving over time, particularly among units with high index values. Our goal was to measure hosuing quality and our proposed
-index specificaly measures poor housing conditions rather than just quality. We believe it would be benefecial to creat several indexes
-concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
-crime, location, and the index value related.
-
 
 # PART 2:  Statistical analyses
 ```{r ahern, include=FALSE}
@@ -237,7 +224,7 @@ For multiple regression model we built a model using our poor quality index(pqi)
 
 Our multiple regression model:
 
-Y = 6.876 + X1*(-3.963e-06) + X2*(-1.855e-04) + X3*(-2.279e-03) + X4*(8.665e-04) + X5*(-2.082e-03)
+Y = 6.876 + X1*(-3.963e-06) + X2*(-1.855e-04) + X3*(-2.279e-03) + X4*(8.665e-04) + X5(-2.082e-03)
 
 ```{r}
 #Preprocess the data
@@ -257,7 +244,6 @@ data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 data_part2 <- rbind(data91_99, data02_17)
 ```   
 
-
 ```{r}
 data_part2$X_28c[data_part2$X_28c == 9999] <- NA # Not applicable (owner occupied or gas and electric not combined)
 data_part2$X_28d2[data_part2$X_28d2 == 9999] <- NA # Not applicable (owner occupied, included in rent, condo, or other fee, or no charge)
@@ -275,6 +261,7 @@ summary(my.reg)
 As income was not included in the index we might consider modeling the relationship between income and housing quality. However, as already discussed the relationship between these variables is difficult. We will instead investigate the relationship between quantiles of household income and 
 poor quality index by subborough. We will model the 5th percentile of household income using year
 and the 95th percentile of PQI. This is a naive model and not a proper qunatile regression which we plan to employ in the future.
+
 ```{r}
 data_part2[which(data_part2$hhinc==9999999),"hhinc"] <- NA
 data_part2[data_part2$year<100,"year"]<-data_part2[data_part2$year<100,"year"] + 1900
@@ -287,6 +274,7 @@ lm_plot %>% ggplotly()
 
 
 It seems clear that time should factor in to the model. However, it is not clear if we should include and interaction term.
+
 ```{r}
 ggplot(bmod, aes(pqi_95, hhinc_05, col=year)) + geom_point(position="jitter") + geom_smooth(method="lm") -> lm_plot
 ggplot(bmod, aes(year, hhinc_05)) + geom_point(position="jitter") -> year_plot
@@ -294,6 +282,7 @@ ggplot(bmod, aes(pqi_95*year, hhinc_05)) + geom_point(position="jitter") -> int_
 ggplot(bmod,(aes(year,pqi_95))) + geom_point(position = "jitter") -> pqi_year
 grid.arrange(year_plot, int_plot, pqi_year)
 ```
+
 The plots seem to show that the interaction is overwhelmed by the PQI, which wold result in multicollinearity issues.
 
 Let's look at the models
@@ -307,18 +296,22 @@ The coefficient for PQI doesnt make much sense, being positive, looking at the g
 lm(data=bmod, hhinc_05 ~ pqi_95 + year) -> bfit2
 coef(bfit2)
 ```
+
 This model has more sensible coefficients, but the $R^2$ dropped a little bit.
 
 Checking Multicollinearity
+
 ```{r}
 vif(bfit)
 vif(bfit2)
 ```
+
 It is clear that the first model has multicolinearity with the addtion of an interaction term. Making the coefficients uninterpretable. We choose the second additive model instead.
 
 ```{r}
 summary(bfit2)
 ```
+
 We estimate that for each unit increase in the 95th percentile of a given subborough will correlate with an average decrease of 333 dollars in the 5th percentile of houshold inocme for the same suborough. 
 
 We estimate that for each increase in year the 5th percentile of househould within a given subborough increases by 1 dollar
@@ -330,7 +323,11 @@ We estimate that for each increase in year the 5th percentile of househould with
 # Logistic regression analyses
 
 For logistic regression model we built a model using the Toilet Brokedowns(X_25c) as a response variable and household income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables.
-   
+
+Our logistic regression model:
+
+Y = 1.672e-01 + X1*(-1.673e-07) + X2*(-2.845e-05) + X3*(6.521e-06) + X4*(-3.623e-05)
+
 ```{r}
 data_part2$X_25c[data_part2$X_25c == 2] <- 0  # NO toilet breakdown
 data_part2$X_25c[data_part2$X_25c == 3] <- NA # NO toilet in the apartment
@@ -346,6 +343,8 @@ summary(my.logreg)
 
 # Machine learning procedure
 
+For machine learning procedure, we decided to build a k nearest neighbors model that has borough as a response variable and poor quality index(pqi), household income(hhinc), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables. 
+
 `1`="Bronx",
 `2`="Brooklyn",
 `3`="Manhattan",
@@ -357,11 +356,8 @@ library(dplyr)
 library(class)
 
 # Change this value to try different k:
-ktry <- 3
-# Distance can only be computed for numerical explanatory variables,
-# so remove Species. Also, for this example, remove Sepal.Length
-# and Sepal.Width:
-train_data <- select(na.omit(data_part2), c(borough, pqi, hhinc, X_30a))
+ktry <- 2
+train_data <- select(na.omit(data_part2), c(borough, pqi, hhinc, X_28c, X_28d2, X_30a))
 #train_data <- na.omit(train_data)
 my.knn <- knn(train = train_data, 
               test = train_data, 
@@ -378,13 +374,29 @@ Correct classification rate
 sum(diag(confusion)) / nrow(data_part2)
 ```
 
+# Limitations and Future Plans
 
+Ultimately, we did not arrive at a method to test our index. 
+However the authors believe the index should be validated against a variable indicative of quality, 
+but not measured in the index. It is in future plans to find data to perfom such a validation test.
+Potential variables were omitted due to the fact they only had data for recent years. 
+Whether a unit has functioning air conditioning was only measured during the years 2014 and 2017. 
+In measuring housing quality this variable would have been useful. 
+The authors' have chosen not to include such datas it may inflate the index scores for later years. 
+However, there are plans to create strong indexes for the recent years. 
+
+In this paper we have created a housing quality index that measures poor housing conditions. We remark that housing conditions have been slowly improving over time, particularly among units with high index values. Our goal was to measure hosuing quality and our proposed
+index specificaly measures poor housing conditions rather than just quality. We believe it would be benefecial to creat several indexes
+concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
+crime, location, and the index value related.
 
 # References
 
 https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
 
 https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
+
+
 
 
 
