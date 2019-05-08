@@ -230,6 +230,7 @@ crime, location, and the index value related.
 
 # Multiple regression analyses
 
+For multiple regression model we built a model using our poor quality index as a response variable and household income(hhinc), year, Monthly contract rent(X_30a), and Out of pocket rent (X_31b) as the  explanatory variables.
 
 ```{r}
 #Preprocess the data
@@ -249,6 +250,11 @@ data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
 data_part2 <- rbind(data91_99, data02_17)
 ```   
 
+```{r}
+data_part2$X_31b
+```
+
+
 
 ```{r}
 data_part2$X_30a[data_part2$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
@@ -258,7 +264,7 @@ data_part2$X_31b[data_part2$X_31b == 99998] <- NA # Not reported
 ```
 
 ```{r}
-my.reg <- lm(pqi ~ hhinc + X_30a + X_31b + year, data = data_part2)
+my.reg <- lm(pqi ~ hhinc + year + X_30a, data = data_part2)
 summary(my.reg)
 ```
 
