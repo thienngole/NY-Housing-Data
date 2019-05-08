@@ -226,7 +226,10 @@ crime, location, and the index value related.
 
 
 # PART 2:  Statistical analyses
-
+```{r ahern, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load("ggplot2", "dplyr", "randomForest", "class", "rpart", "car","gridExtra")
+```
 
 # Multiple regression analyses
 
@@ -267,6 +270,61 @@ my.reg <- lm(pqi ~ hhinc + year + X_28c + X_28d2 + X_30a, data = data_part2)
 summary(my.reg)
 ```
 
+## Second linear model
+
+As income was not included in the index we might consider modeling the relationship between income and housing quality. However, as already discussed the relationship between these variables is difficult. We will instead investigate the relationship between quantiles of household income and 
+poor quality index by subborough. We will model the 5th percentile of household income using year
+and the 95th percentile of PQI. This is a naive model and not a proper qunatile regression which we plan to employ in the future.
+```{r}
+data_part2[which(data_part2$hhinc==9999999),"hhinc"] <- NA
+
+data_part2 %>% group_by(sba, year) %>% summarise(pqi_95 = quantile(pqi,.95), 
+                                               hhinc_05 = quantile(hhinc, .05,na.rm=T)) -> bmod
+head(bmod)
+ggplot(bmod, aes(pqi_95, hhinc_05, col=year)) + geom_point(position="jitter") + geom_smooth(method="lm") -> lm_plot
+lm_plot %>% ggplotly()
+```
+
+
+It seems clear that time should factor in to the model. However, it is not clear if we should include and interaction term.
+```{r}
+ggplot(bmod, aes(pqi_95, hhinc_05, col=year)) + geom_point(position="jitter") + geom_smooth(method="lm") -> lm_plot
+ggplot(bmod, aes(year, hhinc_05)) + geom_point(position="jitter") -> year_plot
+ggplot(bmod, aes(pqi_95*year, hhinc_05)) + geom_point(position="jitter") -> int_plot 
+ggplot(bmod,(aes(year,pqi_95))) + geom_point(position = "jitter") -> pqi_year
+grid.arrange(year_plot, int_plot, pqi_year)
+```
+The plots seem to show that the interaction is overwhelmed by the PQI, which wold result in multicollinearity issues.
+
+Let's look at the models
+```{r}
+lm(data=bmod, hhinc_05 ~ pqi_95 * year) -> bfit
+coef(bfit)
+```
+The coefficient for PQI doesnt make much sense, being positive, looking at the graph above it should be negative. The interaction term is negative, but this likely a multicolinearity.
+
+```{r}
+lm(data=bmod, hhinc_05 ~ pqi_95 + year) -> bfit2
+coef(bfit2)
+```
+This model has more sensible coefficients, but the $R^2$ dropped a little bit.
+
+Checking Multicollinearity
+```{r}
+vif(bfit)
+vif(bfit2)
+```
+It is clear that the first model has multicolinearity with the addtion of an interaction term. Making the coefficients uninterpretable. We choose the second additive model instead.
+
+```{r}
+summary(bfit2)
+```
+We estimate that for each unit increase in the 95th percentile of a given subborough will correlate with an average decrease of 333 dollars in the 5th percentile of houshold inocme for the same suborough. 
+
+We estimate that for each increase in year the 5th percentile of househould within a given subborough increases by 1 dollar
+
+**Notes:** It is clear that after cheking basic assumptions of normality are violated. This is likely due to the fact that the model is using quantiles as a response requiring further work to implement a proper quantile regression.
+
 
 
 # Logistic regression analyses
@@ -284,11 +342,6 @@ data_part2$X_25c[data_part2$X_25c == 9] <- NA # Not applicable (No plumbing faci
 my.logreg <- glm(X_25c ~ hhinc + X_28c + X_28d2 + X_30a, data = data_part2)
 summary(my.logreg)
 ```
-
-
-
-
-
 
 
 # Machine learning procedure
