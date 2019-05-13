@@ -1,0 +1,456 @@
+---
+title: "Project Report: Indexing NYC Hosuing Quality - Part 2"
+author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Zoe Girkin"
+date: "May 17th, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+# PART 1: Preliminary analysis
+
+# Introduction
+
+In the period of 1991 to 2017, housing quality in New York has improved dramatically; however, some sectors of the housing stock continue to face poor conditions and some specific maintenance deficiencies continue to show higher prevalence. In this project, we develop an index that presents poor qualtity of housing in New York by measuring the physical deficiencies to show how the prevalence of these issues has shifted over time. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+pacman::p_load("tigris", "leaflet", "sp", "maptools", "broom", "httr",
+               "rgdal","dplyr","ggplot2","tidyr","scales", "plotly","ggsci", "mapview")
+## Read in data that you created(with etra column)
+data_part1 <- read.csv("merged_datav2.csv", stringsAsFactors = F)
+### the rest
+get_nychsv <- function(year=2017, nrows=-1, col_keys = F){
+  temp <- tempfile()
+  url <- paste0("https://www1.nyc.gov/assets/hpd/downloads/misc/NYCHVS-",year,"-Occupied-File-for-ASA-Challenge-CSV.zip")
+  download.file(url, destfile = temp)
+  header <- read.csv(unzip(temp), nrows = 1)
+  if (!col_keys){
+    temp_data <- read.csv(unzip(temp), skip=1, stringsAsFactors = F, nrows=nrows)
+    colnames(temp_data) <- colnames(header)
+  }
+  temp_name <- paste("NYCHVS",year,"Occupied File for ASA Challenge_CSV.csv")
+  if (file.exists(temp_name)) 
+    file.remove(temp_name)
+  if(!col_keys)
+    return(temp_data)
+  return(header)
+}
+```
+
+ 
+# Methodology
+
+The index measures weighted sums of interactions between 22 variables that the authors chose. 
+The selected variables were chosen if the authors agreed they described poor housing conditions.
+The index is not exhaustive, and potentially more data could be collected to better suit our purpose.
+
+| Item | Description      | NYCHVS Variable | Score |
+| ---- | ---------------- | --------------- | ----- |
+| 1 | Exterior Walls: Missing brick, sliding or other | d1 | 2 |
+| 2 | Exterior Walls: Sloping or bulgin walls | d2 | 2 |
+| 3 | Exterior walls: Major Cracks | d3 | 2 |
+| 4 | Exterior Walls: Loose or hanging corvice, roof, etc. | d4 | 2 |
+| 5 | Interior Walls: Cracks or holes | 36a | 2 |
+| 6 | Interior Walls: Broken plaster or peeling paint | 37a | 2 |
+| 7 | Broken or missing windows | e1 | 5 |
+| 8 | Rotten or loose windows | e2 | 2 |
+| 9 | Boarded up windows | e3 | 3 |
+| 10 | Sagging or sloping floors | g1 | 2 |
+| 11 | Slanted/shifted doorsills or frames | g2 | 2 |
+| 12 | Deep wear in floor causing depressions | g3 | 2 |
+| 13 | Holes or missing flooring | g4 | 2 |
+| 14 | Stairs: Loose, broken, or missing stair | f1 | 2 |
+| 15 | Stairs: Loose, broken, or missing setps | f2 | 2 |
+| 16 | No interior steps or stairways | f4 | 2 |
+| 17 | No exterior steps or stairways | f5 | 2 |
+| 18 | Number of heating equipment breakdowns | 32b | 2 per break down |
+| 19 | Kitchen facilities fucntioning | 26c | 3 if no, 5 if no kitchen facilities |
+| 20 | Toilet Breakdowns | 25c | 3 if any, 5 if no toliet or plumbing |
+| 21 | Presence of mice or rats | 35a | 3 |
+| 22 | Water Leakage | 38a | 3 |
+
+# Visualization
+
+Figure 1 shows the poor quality index scores for the 156,230 occupied units in the New York Housing Dataset from 1991 to 2017. The frequency distribution is skewed to the right. Overall, fourty five percent of the units were scored 0. The highest score was in 1993 with 54 points. 2008 had the highest percent(64%) of units that has 0 poor quality scores.
+
+```{r freq dist}
+data_part1 %>% group_by(year, pqi) %>% summarise(count = n()) %>% 
+  mutate(percent = count/sum(count)) %>%
+  ggplot(aes(x=pqi,y=percent)) + geom_line(aes(col=factor(year))) + 
+  scale_y_continuous(labels=percent) + 
+  ggtitle("Figure 1: Index Percent Frequency Distribution 1991-2017") +
+  xlab("Index Score") + ylab("Percent") + labs(col="") + theme_bw() -> g 
+ggplotly(g)
+```
+
+
+Figure 2 shows percent the percent of ccupied units with poor quality scores. Over the period of 1991 to 2017, most of the units has poor quality scores between 1 and 10 points; very little units that has the poor quality scroes over 20 points.  
+
+```{r}
+data_part1 %>% group_by(year) %>% summarise(`Index > 0` = sum(pqi > 0)/n(), 
+                                          `Index of 1-10` = sum(pqi %in% 1:10)/n(),
+                                          `Index of 11-20`= sum(pqi %in% 11:20)/n(),
+                                          `Index > 20` = sum(pqi>20)/n()) %>% 
+  gather(Group, Percent, -one_of("year")) %>% rename(Year = year) %>% 
+  mutate(Group=factor(Group, levels = c("Index > 0", "Index of 1-10", "Index of 11-20", "Index > 20")))%>%
+  ggplot(aes(x=Year, y=Percent)) + geom_col(aes(fill=Group), position="dodge") + 
+  facet_wrap(facets = ~Group, ncol = 4) + scale_x_reverse(breaks = seq(1990,2017,3)) + 
+  scale_y_continuous(labels = percent) + coord_flip() + 
+  ggtitle("Figure 2: Percent of Units With Quality Problems 1991 - 2017") + theme_bw() + 
+  theme(legend.position="none") -> t_1
+ggplotly(t_1)
+```
+
+Figure 3 tracks trends in poor quality index scores during the period of 1991 to 2017. We decided to report the means, medians, 75th percentiles, 95th percentiles, and 99th percentiles. In most of the years, the median had the poor quality scores of 0. The mean ranged from 4.0 in 1991 to 2.5  in 2017. The 99th percentiles clearly show the improvement of housing in New York( from 25 poor quality points in 1991 to 18 porr quality points in 2017)
+
+```{r}
+data_part1 %>% group_by(year) %>% summarise(p_99 = quantile(pqi,.99),
+                                          p_95 = quantile(pqi,.95),
+                                          p_90 = quantile(pqi,.90),
+                                          p_75 = quantile(pqi,.75),
+                                          Mean = mean(pqi),
+                                          Median = median(pqi)) %>% ungroup(year) %>% 
+  rename_at(vars( c(p_99,p_95,p_90,p_75)),~c(paste0(c(99,95,90,75),"th Percentile"))) %>%
+  gather(line, value, -one_of("year")) %>%
+  mutate(line=factor(line,levels=c(paste0(c(99,95,90,75),"th Percentile"),"Mean","Median"))) %>%
+  ggplot(aes(x=year, y=value, col =line)) + geom_line(size=1) +
+  scale_color_d3(name="") + theme_bw() + 
+  scale_x_continuous(breaks = seq(1990,2017,3)) + ylab("Index Score") + 
+  ggtitle("Figure 3: Index Trends 1991-2017") + xlab("") -> g1
+ggplotly(g1)
+```
+
+Figure 4 shows the poor condition of housing in five different boroughs in New York city in the period of 1991 to 2017. Overall, all five boroughs had an improvement of the house quality. Bronx had the worse housing condition and Stalen Island had the best housing condition.
+
+
+```{r}
+data_part1 %>% group_by(borough, year) %>%
+   summarise(avg_pqi=mean(pqi)) %>% ggplot(aes(x=year, y=avg_pqi)) + geom_col(aes(fill=borough), position= "dodge") + scale_x_continuous(breaks = c(1991,seq(1993,2017, 3))) + ggtitle("Figure 4: Poor Housing Quality 1991-2017") +
+  xlab("Years") + ylab("Index Score") + labs(col="") + theme_bw() + theme_bw()
+```
+
+#### Figure 5: Average Household Income and Index by Sub-borough 
+
+```{r}
+nyc_neighborhoods <- readOGR("Community Districts.geojson")
+### Read in data and format ###########
+data17 <- get_nychsv(year=2017) 
+data17[which(data17$hhinc==9999999),"hhinc"] <- NA
+data17$pqi <- data_part1[data_part1$year==2017, "pqi"]
+data17 %>% mutate(borough = recode(borough, 
+                                   `1` = 2, 
+                                   `3` = 1, 
+                                   `2` = 3, 
+                                   `4` = 4, 
+                                   `5` = 5)) -> data17
+###### Fuckery ###############
+rcd <- function(key,replace) {
+  temp_boro[temp_boro == key] <<- replace
+}
+nyc_neighborhoods$boro_cd -> temp_boro
+temp_boro[temp_boro==102] <- 101
+temp_boro[temp_boro==103] <- 102
+temp_boro[temp_boro==104] <- 103
+temp_boro[temp_boro==105] <- 103
+temp_boro[temp_boro==106] <- 104
+temp_boro[temp_boro==107] <- 105
+temp_boro[temp_boro==108] <- 106
+temp_boro[temp_boro==109] <- 107
+temp_boro[temp_boro==110] <- 108
+temp_boro[temp_boro==111] <- 109
+temp_boro[temp_boro==112] <- 110
+### More fuckery ###########
+rcd(202,201)
+rcd(203,202)
+rcd(204,203)
+rcd(205,204)
+rcd(206,202)
+rcd(207,205)
+rcd(208,206)
+rcd(202,201)
+rcd(209,207)
+rcd(210,208)
+rcd(211,209)
+rcd(212,210)
+nyc_neighborhoods$boro_cd <- temp_boro
+
+# prep
+data17 %>% filter(sub<10) %>%
+  unite(boro_cd,borough, sub, sep="0") %>% select(boro_cd,pqi) -> sub17_1
+data17 %>% filter(sub>=10) %>%
+  unite(boro_cd,borough, sub, sep="") %>% select(boro_cd,pqi) -> sub17_2
+sub17_bind <- bind_rows(sub17_1,sub17_2)
+sub17_bind %>% group_by(boro_cd) %>% summarise(pqi=mean(pqi)) -> sub17
+map_data <- geo_join(nyc_neighborhoods, sub17, "boro_cd", "boro_cd")
+## spatial map
+pal <- colorNumeric(palette = "Reds",
+                    domain = range(map_data@data$pqi, na.rm=T))
+## Plot #########
+B<-leaflet(map_data) %>%
+  addTiles() %>% 
+  addPolygons(smoothFactor = 0.2, fillOpacity = 1,
+              color = ~pal(pqi), popup = ~boro_cd) %>% 
+  addProviderTiles("CartoDB.Positron")
+data17 %>% filter(sub<10) %>%
+  unite(boro_cd,borough, sub, sep="0") %>% select(boro_cd,hhinc) -> sub17_1
+data17 %>% filter(sub>=10) %>%
+  unite(boro_cd,borough, sub, sep="") %>% select(boro_cd,hhinc) -> sub17_2
+sub17_bind <- bind_rows(sub17_1,sub17_2)
+sub17_bind %>% group_by(boro_cd) %>% summarise(pqi=mean(hhinc, na.rm=T)) -> sub17
+map_data <- geo_join(nyc_neighborhoods, sub17, "boro_cd", "boro_cd")
+## spatial map
+pal <- colorNumeric(palette = "Blues",
+                    domain = range(map_data@data$pqi, na.rm=T),
+                    reverse = T)
+## Plot #########
+A<-leaflet(map_data) %>%
+  addTiles() %>% 
+  addPolygons(smoothFactor = 0.2, fillOpacity = 1,
+              color = ~pal(pqi), popup = ~boro_cd) %>% 
+  addProviderTiles("CartoDB.Positron")
+sync(A,B)
+
+```
+
+# PART 2:  Statistical analyses
+```{r ahern, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load("ggplot2", "dplyr", "randomForest", "class", "rpart", "car","gridExtra")
+```
+
+# Multiple regression analyses
+
+For multiple regression model we built a model using our poor quality index(pqi) as a response variable and household income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables.
+
+Our multiple regression model:
+
+Y = 6.876 + X1*(-3.963e-06) + X2*(-1.855e-04) + X3*(-2.279e-03) + X4*(8.665e-04) + X5(-2.082e-03)
+
+```{r}
+#Preprocess the data
+data_part2 <- read.csv("all_data_v2.csv", stringsAsFactors = F)
+
+data91_99 <- filter(data_part2, year == 91 | year == 93 | year == 96 | year == 99 )
+data02_17 <- filter(data_part2, year == 2002 | year == 2005 | year == 2008 | year == 2011 | year == 2014| year == 2017)
+
+# Remove 999998 = Not Reported *** exist only in 1991
+data91_99 <- filter(data91_99, hhinc != 999998)
+
+# replace 999999 and 9999999  = No Income to 0
+data91_99$hhinc <- ifelse(data91_99$hhinc == 999999, 0 , data91_99$hhinc)
+data02_17$hhinc <- ifelse(data02_17$hhinc == 9999999, 0 , data02_17$hhinc)
+
+# concatenate the 2 dataframe back
+data_part2 <- rbind(data91_99, data02_17)
+```   
+
+```{r}
+data_part2$X_28c[data_part2$X_28c == 9999] <- NA # Not applicable (owner occupied or gas and electric not combined)
+data_part2$X_28d2[data_part2$X_28d2 == 9999] <- NA # Not applicable (owner occupied, included in rent, condo, or other fee, or no charge)
+data_part2$X_30a[data_part2$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
+data_part2$X_30a[data_part2$X_30a == 99998] <- NA # Not reported
+```
+
+```{r}
+my.reg <- lm(pqi ~ hhinc + year + X_28c + X_28d2 + X_30a, data = data_part2)
+summary(my.reg)
+```
+
+## Second linear model
+
+As income was not included in the index we might consider modeling the relationship between income and housing quality. However, as already discussed the relationship between these variables is difficult. We will instead investigate the relationship between quantiles of household income and 
+poor quality index by subborough. We will model the 5th percentile of household income using year
+and the 95th percentile of PQI. This is a naive model and not a proper qunatile regression which we plan to employ in the future.
+
+```{r}
+data_part2[which(data_part2$hhinc==9999999),"hhinc"] <- NA
+data_part2[data_part2$year<100,"year"]<-data_part2[data_part2$year<100,"year"] + 1900
+data_part2 %>% group_by(sba, year) %>% summarise(pqi_95 = quantile(pqi,.95), 
+                                               hhinc_05 = quantile(hhinc, .05,na.rm=T)) -> bmod
+head(bmod)
+ggplot(bmod, aes(pqi_95, hhinc_05, col=year)) + geom_point(position="jitter") + geom_smooth(method="lm") -> lm_plot
+lm_plot %>% ggplotly()
+```
+
+
+It seems clear that time should factor in to the model. However, it is not clear if we should include and interaction term.
+
+```{r}
+ggplot(bmod, aes(pqi_95, hhinc_05, col=year)) + geom_point(position="jitter") + geom_smooth(method="lm") -> lm_plot
+ggplot(bmod, aes(year, hhinc_05)) + geom_point(position="jitter") -> year_plot
+ggplot(bmod, aes(pqi_95*year, hhinc_05)) + geom_point(position="jitter") -> int_plot 
+ggplot(bmod,(aes(year,pqi_95))) + geom_point(position = "jitter") -> pqi_year
+grid.arrange(year_plot, int_plot, pqi_year)
+```
+
+The plots seem to show that the interaction is overwhelmed by the PQI, which wold result in multicollinearity issues.
+
+Let's look at the models
+```{r}
+lm(data=bmod, hhinc_05 ~ pqi_95 * year) -> bfit
+coef(bfit)
+```
+The coefficient for PQI doesnt make much sense, being positive, looking at the graph above it should be negative. The interaction term is negative, but this likely a multicolinearity.
+
+```{r}
+lm(data=bmod, hhinc_05 ~ pqi_95 + year) -> bfit2
+coef(bfit2)
+```
+
+This model has more sensible coefficients, but the $R^2$ dropped a little bit.
+
+Checking Multicollinearity
+
+```{r}
+vif(bfit)
+vif(bfit2)
+```
+
+It is clear that the first model has multicolinearity with the addtion of an interaction term. Making the coefficients uninterpretable. We choose the second additive model instead.
+
+```{r}
+summary(bfit2)
+```
+
+We estimate that for each unit increase in the 95th percentile of a given subborough will correlate with an average decrease of 333 dollars in the 5th percentile of houshold inocme for the same suborough. 
+
+We estimate that for each increase in year the 5th percentile of househould within a given subborough increases by 1 dollar
+
+**Notes:** It is clear that after cheking basic assumptions of normality are violated. This is likely due to the fact that the model is using quantiles as a response requiring further work to implement a proper quantile regression.
+
+
+
+# Logistic regression analysis
+
+For logistic regression model we built a model using the Toilet Brokedowns(X_25c) as a response variable and household income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables.
+
+Our logistic regression model:
+
+Y = 1.672e-01 + X1*(-1.673e-07) + X2*(-2.845e-05) + X3*(6.521e-06) + X4*(-3.623e-05)
+
+```{r}
+data_part2$X_25c[data_part2$X_25c == 2] <- 0  # NO toilet breakdown
+data_part2$X_25c[data_part2$X_25c == 3] <- NA # NO toilet in the apartment
+data_part2$X_25c[data_part2$X_25c == 8] <- NA # Not reported
+data_part2$X_25c[data_part2$X_25c == 9] <- NA # Not applicable (No plumbing facilities)
+```
+
+```{r}
+my.logreg <- glm(X_25c ~ hhinc + X_28c + X_28d2 + X_30a, data = data_part2)
+summary(my.logreg)
+```
+
+
+# Machine learning procedure
+
+For machine learning procedure, we decided to build a k nearest neighbors model that has borough as a response variable and poor quality index(pqi), household income(hhinc), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) as the  explanatory variables. 
+
+`1`="Bronx",
+`2`="Brooklyn",
+`3`="Manhattan",
+`4`="Queens", 
+`5`="Staten Island"
+
+```{r}
+library(dplyr)
+library(class)
+
+# Change this value to try different k:
+ktry <- 2
+train_data <- select(na.omit(data_part2), c(borough, pqi, hhinc, X_28c, X_28d2, X_30a))
+#train_data <- na.omit(train_data)
+my.knn <- knn(train = train_data, 
+              test = train_data, 
+              cl = train_data$borough, 
+              k = ktry)
+borough <- data.frame(Actual = train_data$borough, Predicted = my.knn)
+confusion <- table(borough)
+confusion
+
+```
+
+Correct classification rate
+```{r}
+sum(diag(confusion)) / nrow(data_part2)
+```
+
+# PART 3:  Final analysis
+
+# Hierarchical cluster analysis
+```{r}
+
+hc_data <- select(data_part2, c(borough, pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
+hc_data$borough[hc_data$borough == 1] <- "Bronx"
+hc_data$borough[hc_data$borough == 2] <- "Brooklyn"
+hc_data$borough[hc_data$borough == 3] <- "Manhattan"
+hc_data$borough[hc_data$borough == 4] <- "Queens"
+hc_data$borough[hc_data$borough == 5] <- "Staten Island"
+
+hc_data$X_28c[hc_data$X_28c == 999] <- NA
+hc_data$X_28d2[hc_data$X_28d2 == 999] <- NA
+
+hc_data <- na.omit(hc_data)
+hc_data
+```
+
+```{r}
+library(ape)
+arr_dist <- dist(hc_data, method = "euclidean")
+arr_dist
+```
+
+```{r}
+arr_clust <- hclust(arr_dist)
+arr_tree <- as.phylo(arr_clust)
+plot(arr_tree, cex = 0.5)
+```
+
+
+
+# k-means cluster analysis
+
+```{r}
+k_means_data <- select(data_part2, c(pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
+
+k_means_data$X_28c[k_means_data$X_28c == 999] <- NA
+k_means_data$X_28d2[k_means_data$X_28d2 == 999] <- NA
+
+k_means_data <- na.omit(k_means_data)
+k_means_data
+```
+
+
+```{r}
+set.seed(25)
+arr_clust <- kmeans(k_means_data, 3)
+arr_clust
+```
+
+
+
+# Limitations and Future Plans
+
+Ultimately, we did not arrive at a method to test our index. 
+However the authors believe the index should be validated against a variable indicative of quality, 
+but not measured in the index. It is in future plans to find data to perfom such a validation test.
+Potential variables were omitted due to the fact they only had data for recent years. 
+Whether a unit has functioning air conditioning was only measured during the years 2014 and 2017. 
+In measuring housing quality this variable would have been useful. 
+The authors' have chosen not to include such datas it may inflate the index scores for later years. 
+However, there are plans to create strong indexes for the recent years. 
+
+In this paper we have created a housing quality index that measures poor housing conditions. We remark that housing conditions have been slowly improving over time, particularly among units with high index values. Our goal was to measure hosuing quality and our proposed
+index specificaly measures poor housing conditions rather than just quality. We believe it would be benefecial to creat several indexes
+concering qualilty of hosuing e.g., *High Quality Index*, *Neighborhood Quality Index* and to consider all such indexes when considering hosuing quality. We also reccomend further exploration of the spatial component of the data to see if things such as 
+crime, location, and the index value related.
+
+# References
+
+https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
+
+https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
+
+
+
+
+
