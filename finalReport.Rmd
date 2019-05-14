@@ -378,19 +378,12 @@ sum(diag(confusion)) / nrow(data_part2)
 
 # Hierarchical cluster analysis
 ```{r}
-
-hc_data <- select(data_part2, c(borough, pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
-hc_data$borough[hc_data$borough == 1] <- "Bronx"
-hc_data$borough[hc_data$borough == 2] <- "Brooklyn"
-hc_data$borough[hc_data$borough == 3] <- "Manhattan"
-hc_data$borough[hc_data$borough == 4] <- "Queens"
-hc_data$borough[hc_data$borough == 5] <- "Staten Island"
+hc_data <- select(data_part2, c(pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
 
 hc_data$X_28c[hc_data$X_28c == 999] <- NA
 hc_data$X_28d2[hc_data$X_28d2 == 999] <- NA
 
 hc_data <- na.omit(hc_data)
-hc_data
 ```
 
 ```{r}
@@ -406,7 +399,6 @@ plot(arr_tree, cex = 0.5)
 ```
 
 
-
 # k-means cluster analysis
 
 ```{r}
@@ -419,13 +411,22 @@ k_means_data <- na.omit(k_means_data)
 k_means_data
 ```
 
-
 ```{r}
 set.seed(25)
 arr_clust <- kmeans(k_means_data, 3)
-arr_clust
+names(arr_clust)
 ```
 
+
+```{r}
+arr_clust$cluster
+k_means_data$cluster <- arr_clust$cluster
+k_means_data$cluster
+
+by_clust <- group_by(.data = k_means_data, cluster)
+num_of_each_cluster <- summarise(.data = by_clust, num_cluster = n())
+num_of_each_cluster
+```
 
 
 # Limitations and Future Plans
