@@ -409,7 +409,11 @@ plot(arr_tree, cex = 0.5)
 k_means_data <- select(data_part2, c(pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
 
 k_means_data$X_28c[k_means_data$X_28c == 999] <- NA
+k_means_data$X_28c[k_means_data$X_28c == 998] <- NA
+k_means_data$X_28c[k_means_data$X_28c == 9999] <- NA
 k_means_data$X_28d2[k_means_data$X_28d2 == 999] <- NA
+k_means_data$X_28d2[k_means_data$X_28d2 == 998] <- NA
+k_means_data$X_28d2[k_means_data$X_28d2 == 9999] <- NA
 
 k_means_data <- na.omit(k_means_data)
 k_means_data
