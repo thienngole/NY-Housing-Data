@@ -249,6 +249,10 @@ data_part2$X_28c[data_part2$X_28c == 9999] <- NA # Not applicable (owner occupie
 data_part2$X_28d2[data_part2$X_28d2 == 9999] <- NA # Not applicable (owner occupied, included in rent, condo, or other fee, or no charge)
 data_part2$X_30a[data_part2$X_30a == 99999] <- NA # Not applicable (occupied rent free or owner occupied)
 data_part2$X_30a[data_part2$X_30a == 99998] <- NA # Not reported
+
+data_part2$mgrent[data_part2$mgrent == 9998] <- NA # Not reported
+data_part2$mgrent[data_part2$mgrent == 9999] <- NA # Not applicable (occupied rent free or owner occupied)
+data_part2$mgrent[data_part2$mgrent == 99999] <- NA # Not applicable  (occupied rent free or owner occupied)
 ```
 
 ```{r}
