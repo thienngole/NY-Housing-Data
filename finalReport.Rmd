@@ -381,6 +381,7 @@ sum(diag(confusion)) / nrow(data_part2)
 # PART 3:  Final analysis
 
 # Hierarchical cluster analysis
+For our hierarchy clustering, we decided to use our Poor Quality Index(pqi), Household Income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) and Monthly Gross Rent (mgrent). The hierarchy clustering includes only the households of tenants. 
 ```{r}
 hc_data <- select(data_part2, c(pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
 
@@ -406,7 +407,7 @@ plot(arr_tree, cex = 0.5)
 
 
 # k-means cluster analysis
-
+For our k-means clustering, we used the same variables as our hierarchy clustering, which is our Poor Quality Index(pqi), Household Income(hhinc), year(year), Combined Gas/Electricity Monthly Cost(X_28c), Water and Sewer Annual Cost(X_28d2), Monthly contract rent(X_30a) and Monthly Gross Rent (mgrent). The k-means clustering also includes only the households of tenants.
 ```{r}
 k_means_data <- select(data_part2, c(pqi, hhinc, X_28c, X_28d2, X_30a, mgrent))
 
