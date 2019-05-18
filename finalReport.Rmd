@@ -426,7 +426,7 @@ k_means_data %>% mutate(cluster = arr_clust$cluster)%>%
 summarise(num_cluster = n())
 
 ```
-This confirms how poorly kmeans, and clustering performs on the data at a unit level. We have a whopping 214 clusters of size, and only one cluster of size 3. This just reaffirms some of the comments made above. Further analysis is needed and a better data aggregation needs to be implemented. It would be interesting to aggregate by subborough and perfor kmeans with 5 clusters to explore how "similar" subboroghs are within the same borough.
+This confirms how poorly kmeans, and clustering performs on the data at a unit level. Trying differnt seeds shows a huge variation in cluster sizes. However, one of the clusters is consitiintely small which is interesting, but this could be outliers, e.g., very high income earners out of a small sample(n=251). This just reafirms some of the comments made above. Further analysis is needed and a better data aggregation needs to be implemented. It would be interesting to aggregate by subborough and perfor kmeans with 5 clusters to explore how "similar" subboroghs are within the same borough.
 
 
 # Limitations and Future Plans
