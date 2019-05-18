@@ -390,7 +390,7 @@ hc_data$X_28c[hc_data$X_28c == 998] <- NA
 hc_data$X_28d2[hc_data$X_28d2 == 999] <- NA
 hc_data$X_28d2[hc_data$X_28d2 == 998] <- NA
 
-hc_data <- na.omit(scale(hc_data))
+hc_data <- na.omit(scale(hc_data)) %>% data.frame()
 ```
 We chose to scale the data to get better comparison among the diferrent varaibles we selected.
 
@@ -417,18 +417,14 @@ k_means_data$X_28c[k_means_data$X_28c == 998] <- NA
 k_means_data$X_28d2[k_means_data$X_28d2 == 999] <- NA
 k_means_data$X_28d2[k_means_data$X_28d2 == 998] <- NA
 
-k_means_data <- na.omit(scale(k_means_data))
+k_means_data <- na.omit(scale(k_means_data)) %>% data.frame()
 set.seed(25)
 arr_clust <- kmeans(k_means_data, 3)
-summary(arr_clust)
-```
+arr_clust
+k_means_data %>% mutate(cluster = arr_clust$cluster)%>%
+  group_by(cluster) %>%
+summarise(num_cluster = n())
 
-
-```{r}
-k_means_data$cluster <- arr_clust$cluster
-by_clust <- group_by(.data = k_means_data, cluster)
-num_of_each_cluster <- summarise(.data = by_clust, num_cluster = n())
-num_of_each_cluster
 ```
 This confirms how poorly kmeans, and clustering performs on the data at a unit level. We have a whopping 214 clusters of size, and only one cluster of size 3. This just reaffirms some of the comments made above. Further analysis is needed and a better data aggregation needs to be implemented. It would be interesting to aggregate by subborough and perfor kmeans with 5 clusters to explore how "similar" subboroghs are within the same borough.
 
@@ -454,7 +450,6 @@ crime, location, and the index value related.
 https://www.huduser.gov/publications/pdf/AHS_hsg.pdf
 
 https://www1.nyc.gov/site/hpd/about/nychvs-asa-data-challenge-expo.page
-
 
 
 
