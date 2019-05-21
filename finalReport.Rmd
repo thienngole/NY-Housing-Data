@@ -1,5 +1,5 @@
 ---
-title: "Project Report: Indexing NYC Hosuing Quality - Part 2"
+title: "Project Report: Indexing NYC Hosuing Quality - final"
 author: "Group C: Ayako Zrust, Anayeli Ochoa, Ahern Nelson, ThienNgo Le, Zoe Girkin"
 date: "May 17th, 2019"
 output:
